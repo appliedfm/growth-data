@@ -268,13 +268,26 @@ time_start = time.time()
 run = Run.new_run()
 run.create_entry()
 
-FULL_LANGUAGES = ["coq", "agda", "lean"]
+FULL_LANGUAGES = ["coq", "agda", "lean", "ada", "idris", "tla"]
 
 for language in FULL_LANGUAGES:
     gh.repositories_search(run, f"language:{language} and fork:false", fetch_all=True)
 
-
-PARTIAL_LANGUAGES = ["ocaml", "haskell", "go", "rust", "erlang", "java", "python3", "python2", "c",]
+PARTIAL_LANGUAGES = [
+    "ocaml",
+    "haskell",
+    "go",
+    "rust",
+    "erlang",
+    "java",
+    "c",
+    "c++",
+    "python",
+    "fortran",
+    "r",
+    "terraform",
+    "verilog"
+]
 
 for language in PARTIAL_LANGUAGES:
     gh.repositories_search(run, f"language:{language} and fork:false")
