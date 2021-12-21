@@ -1,4 +1,6 @@
-# growthdata
+# growth-data
+
+Tools and data for measuring the popularity & growth of various programming languages.
 
 ## Install the dependencies
 
