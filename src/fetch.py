@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from datalite import datalite
 from datetime import datetime, timedelta, timezone
-import base64
+import git
 import json
 import requests
 import time
 import urllib.parse
-import zlib
 
 now_ds = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
 
@@ -15,13 +14,16 @@ now_ds = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
 class Run:
     ds: str
     ts: str
+    commit_hash: str
 
     def new_run():
         ts = datetime.now(tz=timezone.utc)
+        repo = git.Repo(search_parent_directories=True)
 
         return Run(
             ds = str(now_ds),
-            ts = str(ts)
+            ts = str(ts),
+            commit_hash = str(repo.head.object.hexsha),
         )
 
 
@@ -270,31 +272,32 @@ run = Run.new_run()
 run.create_entry()
 
 FULL_LANGUAGES = [
-    # "coq",
-    # "agda",
-    # "lean",
-    # "ada",
-    # "idris",
-    # "tla"
+    "coq",
+    "agda",
+    "lean",
+    "ada",
+    "idris",
+    "tla"
 ]
 
 for language in FULL_LANGUAGES:
     gh.repositories_search(run, f"language:{language} and fork:false", fetch_all=True)
 
 PARTIAL_LANGUAGES = [
-    # "ocaml",
-    # "haskell",
-    # "go",
-    # "rust",
-    # "erlang",
-    # "java",
+    "ocaml",
+    "haskell",
+    "go",
+    "rust",
+    "erlang",
+    "java",
+    "assembly",
     "c",
     "c++",
-    # "python",
-    # "fortran",
-    # "r",
-    # "terraform",
-    # "verilog"
+    "python",
+    "fortran",
+    "r",
+    "terraform",
+    "verilog"
 ]
 
 for language in PARTIAL_LANGUAGES:
