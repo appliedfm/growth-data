@@ -5,6 +5,7 @@ import base64
 import json
 import requests
 import time
+import urllib.parse
 import zlib
 
 now_ds = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
@@ -199,7 +200,7 @@ class GitHub:
 
         github_rest_request, github_rest_request_data = self.do_request(
             task,
-            f"https://api.github.com/search/repositories?q={q}&page={page}&per_page={per_page}"
+            f"https://api.github.com/search/repositories?q={urllib.parse.quote(q)}&page={page}&per_page={per_page}"
         )
 
         if 200 != github_rest_request.status:
@@ -268,25 +269,32 @@ time_start = time.time()
 run = Run.new_run()
 run.create_entry()
 
-FULL_LANGUAGES = ["coq", "agda", "lean", "ada", "idris", "tla"]
+FULL_LANGUAGES = [
+    # "coq",
+    # "agda",
+    # "lean",
+    # "ada",
+    # "idris",
+    # "tla"
+]
 
 for language in FULL_LANGUAGES:
     gh.repositories_search(run, f"language:{language} and fork:false", fetch_all=True)
 
 PARTIAL_LANGUAGES = [
-    "ocaml",
-    "haskell",
-    "go",
-    "rust",
-    "erlang",
-    "java",
+    # "ocaml",
+    # "haskell",
+    # "go",
+    # "rust",
+    # "erlang",
+    # "java",
     "c",
     "c++",
-    "python",
-    "fortran",
-    "r",
-    "terraform",
-    "verilog"
+    # "python",
+    # "fortran",
+    # "r",
+    # "terraform",
+    # "verilog"
 ]
 
 for language in PARTIAL_LANGUAGES:
