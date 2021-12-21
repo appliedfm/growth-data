@@ -11,7 +11,13 @@ $ pip install -r requirements.txt
 # Example queries
 
 ```sql
-sqlite> SELECT ds, q, MAX(total_count) AS num_repos FROM github_repos_search GROUP BY q ORDER BY 3;
+sqlite> SELECT
+    ds,
+    q,
+    MAX(total_count) AS num_repos
+  FROM github_repos_search
+  GROUP BY ds, q
+  ORDER BY 3;
 "2021-12-21"|"language:lean and fork:false"|74
 "2021-12-21"|"language:agda and fork:false"|192
 "2021-12-21"|"language:coq and fork:false"|509
