@@ -105,7 +105,6 @@ class GitHub_Search_Repo:
     github_repo_homepage: str
     github_repo_size: int
     github_repo_stargazers_count: int
-    github_repo_watchers_count: int
     github_repo_language: str
     github_repo_has_issues: int
     github_repo_has_projects: int
@@ -146,7 +145,6 @@ class GitHub_Search_Repo:
             github_repo_homepage = str(repo["homepage"]),
             github_repo_size = int(repo["size"]),
             github_repo_stargazers_count = int(repo["stargazers_count"]),
-            github_repo_watchers_count = int(repo["watchers_count"]),
             github_repo_language = str(repo["language"]),
             github_repo_has_issues = int(repo["has_issues"]),
             github_repo_has_projects = int(repo["has_projects"]),
