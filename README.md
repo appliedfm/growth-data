@@ -78,4 +78,36 @@ ds            q                                repos  repos_with_issues  repos_w
 sqlite> 
 ```
 
-## Followers
+## Stats about the average recently-updated (non-fork) repository
+
+```sql
+sqlite> .mode column
+sqlite> SELECT
+    github_search.ds AS ds,
+    github_search_q AS q,
+    COUNT(*) AS repos,
+    SUM(github_repo_has_issues) AS repos_with_issues,
+    SUM(github_repo_has_wiki) AS repos_with_wiki,
+    SUM(github_repo_has_pages) AS repos_with_pages,
+    SUM(length(github_repo_license_name) > 2) AS repos_with_license,
+    AVG(github_repo_stargazers_count) AS avg_stars,
+    AVG(github_repo_watchers_count) AS avg_watchers,
+    AVG(github_repo_forks_count) AS avg_forks,
+    AVG(github_repo_size) AS avg_size,
+    AVG(github_repo_open_issues_count) AS avg_open_issues
+  FROM github_search INNER JOIN github_search_repo
+  ON github_search.obj_id = github_search_obj_id
+  WHERE github_repo_updated_at >= '"2021-01-01T00:00:00Z"'
+  GROUP BY 1, 2
+  ORDER BY 3;
+ds            q                                repos  repos_with_issues  repos_with_wiki  repos_with_pages  repos_with_license  avg_stars         avg_watchers      avg_forks         avg_size          avg_open_issues  
+------------  -------------------------------  -----  -----------------  ---------------  ----------------  ------------------  ----------------  ----------------  ----------------  ----------------  -----------------
+"2021-12-22"  "language:tla and fork:false"    33     32                 30               1                 18                  58.2121212121212  58.2121212121212  4.39393939393939  40074.5151515152  0.636363636363636
+"2021-12-22"  "language:idris and fork:false"  44     44                 43               3                 23                  23.9090909090909  23.9090909090909  2.22727272727273  762.681818181818  1.61363636363636 
+"2021-12-22"  "language:lean and fork:false"   46     44                 43               3                 14                  31.3260869565217  31.3260869565217  2.95652173913043  24272.2391304348  2.58695652173913 
+"2021-12-22"  "language:agda and fork:false"   77     74                 75               8                 24                  19.7402597402597  19.7402597402597  1.93506493506494  4027.46753246753  0.376623376623377
+"2021-12-22"  "language:ada and fork:false"    168    165                148              10                82                  12.2857142857143  12.2857142857143  2.67261904761905  9615.82142857143  2.80357142857143 
+"2021-12-22"  "language:coq and fork:false"    209    204                199              30                111                 19.2153110047847  19.2153110047847  3.25837320574163  9385.28708133971  1.90909090909091 
+sqlite> 
+```
+
