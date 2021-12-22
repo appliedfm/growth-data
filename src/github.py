@@ -9,7 +9,7 @@ import urllib.parse
 
 now_ds = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
 
-@datalite(db_path="data.db")
+@datalite(db_path="github.db")
 @dataclass
 class Run:
     ds: str
@@ -27,7 +27,7 @@ class Run:
         )
 
 
-@datalite(db_path="data.db")
+@datalite(db_path="github.db")
 @dataclass
 class Task:
     ds: str
@@ -47,7 +47,7 @@ class Task:
             task_args = task_args
         )
 
-@datalite(db_path="data.db")
+@datalite(db_path="github.db")
 @dataclass
 class GitHub_Rest_Request:
     ds: str
@@ -57,7 +57,7 @@ class GitHub_Rest_Request:
     github_rest_request_status: int
     github_rest_request_data: str
 
-@datalite(db_path="data.db")
+@datalite(db_path="github.db")
 @dataclass
 class GitHub_Search:
     ds: str
@@ -83,7 +83,7 @@ class GitHub_Search:
             github_search_len_items = int(len(search_results["items"]))
         ) 
 
-@datalite(db_path="data.db")
+@datalite(db_path="github.db")
 @dataclass
 class GitHub_Search_Repo:
     ds: str
