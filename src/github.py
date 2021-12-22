@@ -292,6 +292,7 @@ run.create_entry()
 
 FULL_LANGUAGES = [
     "coq",
+    "isabelle",
     "agda",
     "lean",
     "ada",
@@ -305,10 +306,12 @@ for language in FULL_LANGUAGES:
 PARTIAL_LANGUAGES = [
     "ocaml",
     "haskell",
+    "prolog",
     "go",
     "rust",
     "erlang",
     "java",
+    "scala",
     "assembly",
     "c",
     "c++",
