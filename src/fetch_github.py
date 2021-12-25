@@ -281,30 +281,36 @@ def weekly_discovery(run):
     return success
 
 
-def fill_github_discovered_repo(run):
+def fill_github_discovered_repo(con, cur, run):
     query = f"""
         INSERT INTO github_discovered_repo (ds, run_obj_id, github_repo_id, github_repo_full_name, languages)
         SELECT
-            task.ds as ds,
-            task.run_obj_id as run_obj_id,
+            ds,
+            run_obj_id,
             github_repo_id,
             github_repo_full_name,
-            JSON_GROUP_ARRAY(JSON_EXTRACT(task.task_tags, '$.language')) AS languages
-        FROM task INNER JOIN github_search_repo
-            ON task.obj_id = github_search_repo.task_obj_id
-        WHERE
-            task.run_obj_id = {run.obj_id}
-            AND task.task_kind = 'github_repositories_search'
+            JSON_GROUP_ARRAY(language) AS languages
+        FROM (
+            SELECT DISTINCT
+                task.ds as ds,
+                task.run_obj_id as run_obj_id,
+                github_repo_id,
+                github_repo_full_name,
+                JSON_EXTRACT(task.task_tags, '$.language') AS language
+            FROM task INNER JOIN github_search_repo
+                ON task.obj_id = github_search_repo.task_obj_id
+            WHERE
+                task.run_obj_id = {run.obj_id}
+                AND task.task_kind = 'github_repositories_search'
+        )
         GROUP BY 1, 2, 3, 4
         ORDER BY 1, 5;
     """
-    con = sqlite3.connect('growth-data.db')
-    cur = con.cursor()
     cur.execute(query)
     con.commit()
-    con.close()
+    return True
 
-def fill_github_seen_repo(run):
+def fill_github_seen_repo(con, cur, run):
     query = f"""
         INSERT INTO github_seen_repo (ds, run_obj_id, github_repo_id, github_repo_full_name, first_seen_ds, last_seen_ds, languages)
         SELECT
@@ -316,47 +322,54 @@ def fill_github_seen_repo(run):
             MAX(last_seen_ds) AS last_seen_ds,
             JSON_GROUP_ARRAY(language) AS languages
         FROM (
-            SELECT DISTINCT
+            SELECT
                 github_repo_id,
                 github_repo_full_name,
-                ds AS first_seen_ds,
-                ds AS last_seen_ds,
-                json_each.value as language
-            FROM github_discovered_repo, JSON_EACH(github_discovered_repo.languages)
-            WHERE
-                run_obj_id = {run.obj_id}
-
-            UNION
-
-            SELECT DISTINCT
-                github_repo_id,
-                github_repo_full_name,
-                first_seen_ds,
-                last_seen_ds,
-                json_each.value as language
-            FROM github_seen_repo, JSON_EACH(github_seen_repo.languages) INNER JOIN (
-                SELECT
-                    run.obj_id as most_recent_obj_id,
-                    run.ds
-                FROM run INNER JOIN github_seen_repo
-                ON run.obj_id = github_seen_repo.run_obj_id
+                language,
+                MIN(first_seen_ds) AS first_seen_ds,
+                MAX(last_seen_ds) AS last_seen_ds
+            FROM (
+                SELECT DISTINCT
+                    github_repo_id,
+                    github_repo_full_name,
+                    ds AS first_seen_ds,
+                    ds AS last_seen_ds,
+                    json_each.value as language
+                FROM github_discovered_repo, JSON_EACH(github_discovered_repo.languages)
                 WHERE
-                    run_status = 'SUCCESS'
-                    AND run.ds < '{run.ds}'
-                ORDER BY 1 DESC
-                LIMIT 1
+                    run_obj_id = {run.obj_id}
+
+                UNION
+
+                SELECT DISTINCT
+                    github_repo_id,
+                    github_repo_full_name,
+                    first_seen_ds,
+                    last_seen_ds,
+                    json_each.value as language
+                FROM github_seen_repo, JSON_EACH(github_seen_repo.languages) INNER JOIN (
+                    SELECT
+                        run.obj_id as most_recent_obj_id,
+                        run.ds
+                    FROM run INNER JOIN github_seen_repo
+                    ON run.obj_id = github_seen_repo.run_obj_id
+                    WHERE
+                        run_status = 'SUCCESS'
+                        AND run.ds < '{run.ds}'
+                    ORDER BY 1 DESC
+                    LIMIT 1
+                )
+                ON
+                    run_obj_id = most_recent_obj_id
             )
-            ON
-                run_obj_id = most_recent_obj_id
+            GROUP BY 1, 2, 3
         )
         GROUP BY 1, 2, 3, 4
-        ORDER BY 5;
+        ORDER BY 1, 7, 4;
     """
-    con = sqlite3.connect('growth-data.db')
-    cur = con.cursor()
     cur.execute(query)
     con.commit()
-    con.close()
+    return True
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
@@ -370,10 +383,13 @@ if __name__=="__main__":
 
     success = True
     if args.mode == 'weekly':
-        # success = success and weekly_stats(run)
+        success = success and weekly_stats(run)
         success = success and weekly_discovery(run)
-        success = success and fill_github_discovered_repo(run)
-        success = success and fill_github_seen_repo(run)
+        con = sqlite3.connect('growth-data.db')
+        cur = con.cursor()
+        success = success and fill_github_discovered_repo(con, cur, run)
+        success = success and fill_github_seen_repo(con, cur, run)
+        con.close()
     else:
         success = False
         print(f"unknown mode: {args.mode}", file=sys.stderr)
