@@ -191,6 +191,7 @@ class GitHub_Discovered_Repo:
 @dataclass
 class GitHub_Seen_Repo:
     ds: str
+    run_obj_id: int
     github_repo_id: int
     github_repo_full_name: str
     first_seen_ds: str

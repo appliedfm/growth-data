@@ -13,38 +13,42 @@ GITHUB_WINDOWS = {
 }
 
 GITHUB_FULL_LANGUAGES = [
-    "coq",
-    "isabelle",
-    "agda",
-    "lean",
     "ada",
+    "agda",
+    "coq",
     "idris",
+    "isabelle",
+    "lean",
     "tla"
 ]
 
 GITHUB_DISCOVER_LANGUAGES = [
-    "ocaml",
-    "haskell",
     "erlang",
+    "haskell",
+    "fortran",
+    "go",
+    "ocaml",
     "rust",
+    "terraform",
     "verilog",
 ]
 
 GITHUB_LIGHT_LANGUAGES = [
-    "prolog",
-    "go",
-    "java",
-    "scala",
     "assembly",
     "c",
     "c++",
+    "java",
+    "prolog",
     "python",
-    "fortran",
     "r",
-    "terraform",
+    "scala",
 ]
 
 GITHUB_LANGUAGES = GITHUB_FULL_LANGUAGES + GITHUB_DISCOVER_LANGUAGES + GITHUB_LIGHT_LANGUAGES
+
+GITHUB_DISCOVER_WINDOW="001_1week"
+GITHUB_DISCOVER_STARS=5
+GITHUB_DISCOVER_TOPICS=2
 
 GITHUB_FETCH_ALL = [
     (language, window)
@@ -55,12 +59,6 @@ GITHUB_FETCH_ALL = [
         "024_6month",
         "052_1year",
         "156_3year",
-    ]
-] + [
-    (language, window)
-    for language in GITHUB_DISCOVER_LANGUAGES
-    for window in [
-        "001_1week",
     ]
 ]
 

@@ -123,7 +123,7 @@ class GitHub:
                 )
         return True
 
-    def repositories_search(self, run: Run, tags, q, pushed_since=None, page=1, per_page=75, fetch_all=False):
+    def repositories_search(self, run: Run, tags, q, pushed_since=None, stars=None, topics=None, page=1, per_page=75, fetch_all=False):
         if not fetch_all:
             per_page=1
 
@@ -133,6 +133,7 @@ class GitHub:
             task_args = json.dumps({
                 "q": q,
                 "pushed_since": pushed_since,
+                "stars": stars,
                 "page": page,
                 "per_page": per_page,
                 "fetch_all": fetch_all
@@ -141,11 +142,15 @@ class GitHub:
         )
         task.create_entry()
 
+        pushed_since_query = f" and pushed:>{pushed_since}" if pushed_since is not None else ""
+        stars_query = f" and stars:>={stars}" if stars is not None else ""
+        topics_query = f" and topics:>={topics}" if topics is not None else ""
+
         success = self.do_search(
             task,
             "repositories",
             GitHub_Search_Repo.of_json,
-            q + (f" and pushed:>{pushed_since}" if pushed_since is not None else ""),
+            q + pushed_since_query + stars_query + topics_query,
             page = page,
             per_page = per_page,
             fetch_all = fetch_all
@@ -219,9 +224,8 @@ class GitHub:
 
 def weekly_stats(run):
     success = True
-
     for window in GITHUB_WINDOWS:
-        for language in (GITHUB_LANGUAGES):
+        for language in GITHUB_LANGUAGES:
             print(f"q={language}, window={window} ...")
             success = success and gh.repositories_search(
                 run,
@@ -256,8 +260,28 @@ def weekly_stats(run):
             print("")
     return success
 
+def weekly_discovery(run):
+    success = True
+    for language in GITHUB_FULL_LANGUAGES + GITHUB_DISCOVER_LANGUAGES:
+        print(f"discover {language} ...")
+        success = success and gh.repositories_search(
+            run,
+            {
+                "language": language,
+                "window": GITHUB_DISCOVER_WINDOW,
+                "stars": GITHUB_DISCOVER_STARS,
+                "topics": GITHUB_DISCOVER_TOPICS,
+            },
+            f"language:{language} and fork:false",
+            pushed_since=(now - GITHUB_WINDOWS[GITHUB_DISCOVER_WINDOW]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[GITHUB_DISCOVER_WINDOW] is not None else None,
+            stars=GITHUB_DISCOVER_STARS,
+            topics=GITHUB_DISCOVER_TOPICS,
+            fetch_all=True,
+        )
+    return success
 
-def discover_repos(run):
+
+def fill_github_discovered_repo(run):
     query = f"""
         INSERT INTO github_discovered_repo (ds, run_obj_id, github_repo_id, github_repo_full_name, languages)
         SELECT
@@ -280,11 +304,12 @@ def discover_repos(run):
     con.commit()
     con.close()
 
-def see_repos(run):
+def fill_github_seen_repo(run):
     query = f"""
-        INSERT INTO github_seen_repo (ds, github_repo_id, github_repo_full_name, first_seen_ds, last_seen_ds, languages)
+        INSERT INTO github_seen_repo (ds, run_obj_id, github_repo_id, github_repo_full_name, first_seen_ds, last_seen_ds, languages)
         SELECT
             '{run.ds}' AS ds,
+            {run.obj_id} AS run_obj_id,
             github_repo_id,
             github_repo_full_name,
             MIN(first_seen_ds) AS first_seen_ds,
@@ -297,10 +322,9 @@ def see_repos(run):
                 ds AS first_seen_ds,
                 ds AS last_seen_ds,
                 json_each.value as language
-            FROM
-                github_discovered_repo, JSON_EACH(github_discovered_repo.languages)
+            FROM github_discovered_repo, JSON_EACH(github_discovered_repo.languages)
             WHERE
-                run_obj_id = {run.ds}
+                run_obj_id = {run.obj_id}
 
             UNION
 
@@ -310,10 +334,22 @@ def see_repos(run):
                 first_seen_ds,
                 last_seen_ds,
                 json_each.value as language
-            FROM
-                github_seen_repo, JSON_EACH(github_seen_repo.languages)
+            FROM github_seen_repo, JSON_EACH(github_seen_repo.languages) INNER JOIN (
+                SELECT
+                    run.obj_id as most_recent_obj_id,
+                    run.ds
+                FROM run INNER JOIN github_seen_repo
+                ON run.obj_id = github_seen_repo.run_obj_id
+                WHERE
+                    run_status = 'SUCCESS'
+                    AND run.ds < '{run.ds}'
+                ORDER BY 1 DESC
+                LIMIT 1
+            )
+            ON
+                run_obj_id = most_recent_obj_id
         )
-        GROUP BY 1, 2
+        GROUP BY 1, 2, 3, 4
         ORDER BY 5;
     """
     con = sqlite3.connect('growth-data.db')
@@ -334,9 +370,10 @@ if __name__=="__main__":
 
     success = True
     if args.mode == 'weekly':
-        success = success and weekly_stats(run)
-        success = success and discover_repos(run)
-        success = success and see_repos(run)
+        # success = success and weekly_stats(run)
+        success = success and weekly_discovery(run)
+        success = success and fill_github_discovered_repo(run)
+        success = success and fill_github_seen_repo(run)
     else:
         success = False
         print(f"unknown mode: {args.mode}", file=sys.stderr)
