@@ -16,6 +16,7 @@ class Run:
     ds: str
     ts: str
     run_commit_hash: str
+    run_status: str
 
     def new_run():
         ts = datetime.now(tz=timezone.utc)
@@ -25,6 +26,7 @@ class Run:
             ds = str(now_ds),
             ts = str(ts),
             run_commit_hash = str(repo.head.object.hexsha),
+            run_status = "STARTED"
         )
 
 
@@ -37,6 +39,7 @@ class Task:
     task_kind: str
     task_args: str
     task_tags: str
+    task_status: str
 
     def new_task(run: Run, task_kind, task_args, task_tags):
         ts = datetime.now(tz=timezone.utc)
@@ -48,6 +51,7 @@ class Task:
             task_kind = task_kind,
             task_args = task_args,
             task_tags = str(task_tags),
+            task_status = "STARTED"
         )
 
 @datalite(db_path="growth-data.db")
@@ -293,7 +297,7 @@ class GitHub:
 
         if 200 != github_rest_request.github_rest_request_status:
             print(f" ... error: status {github_rest_request.github_rest_request_status}")
-            return
+            return False
 
         total_count = int(github_rest_request_data["total_count"])
         total_so_far = (page - 1) * per_page + int(len(github_rest_request_data["items"]))
@@ -322,7 +326,7 @@ class GitHub:
 
             # Continue to the next page
             if total_so_far < total_count and total_so_far < self.search_results_max:
-                self.do_search(
+                return self.do_search(
                     task,
                     target,
                     item_of_json,
@@ -331,6 +335,7 @@ class GitHub:
                     per_page = per_page,
                     fetch_all = fetch_all
                 )
+        return True
 
     def repositories_search(self, run: Run, tags, q, pushed_since=None, page=1, per_page=75, fetch_all=False):
         if not fetch_all:
@@ -350,7 +355,7 @@ class GitHub:
         )
         task.create_entry()
 
-        self.do_search(
+        success = self.do_search(
             task,
             "repositories",
             GitHub_Search_Repo.of_json,
@@ -359,6 +364,9 @@ class GitHub:
             per_page = per_page,
             fetch_all = fetch_all
         )
+        task.task_status = "SUCCESS" if success else "HAS_ERRORS"
+        task.update_entry()
+        return success
 
     def users_search(self, run: Run, tags, q, created_after=None, page=1, per_page=75, fetch_all=False):
         if not fetch_all:
@@ -378,7 +386,7 @@ class GitHub:
         )
         task.create_entry()
         
-        self.do_search(
+        success = self.do_search(
             task,
             "users",
             GitHub_Search_User.of_json,
@@ -387,6 +395,9 @@ class GitHub:
             per_page = per_page,
             fetch_all = fetch_all
         )
+        task.task_status = "SUCCESS" if success else "HAS_ERRORS"
+        task.update_entry()
+        return success
 
     def topics_search(self, run: Run, tags, q, created_after=None, page=1, per_page=75, fetch_all=False):
         if not fetch_all:
@@ -406,7 +417,7 @@ class GitHub:
         )
         task.create_entry()
         
-        self.do_search(
+        success = self.do_search(
             task,
             "topics",
             GitHub_Search_Topic.of_json,
@@ -415,6 +426,9 @@ class GitHub:
             per_page = per_page,
             fetch_all = fetch_all
         )
+        task.task_status = "SUCCESS" if success else "HAS_ERRORS"
+        task.update_entry()
+        return success
 
 
 CUTOFFS = {
@@ -482,45 +496,54 @@ TOPIC_CUTOFFS = [
 ]
 
 
-gh = GitHub()
-time_start = time.time()
-run = Run.new_run()
-run.create_entry()
+def fetch_data():
+    gh = GitHub()
+    time_start = time.time()
+    run = Run.new_run()
+    run.create_entry()
 
-for cutoff in CUTOFFS:
-    for language in (FULL_LANGUAGES + PARTIAL_LANGUAGES):
-        print(f"q={language}, cutoff={cutoff} ...")
-        gh.repositories_search(
-            run,
-            {
-                "language": language,
-                "cutoff": cutoff,
-            },
-            f"language:{language} and fork:false",
-            pushed_since=CUTOFFS[cutoff],
-            fetch_all=(language, cutoff) in FETCH_ALL,
-        )
-        if cutoff in USER_CUTOFFS:
-            gh.users_search(
+    success = True
+
+    for cutoff in CUTOFFS:
+        for language in (FULL_LANGUAGES + PARTIAL_LANGUAGES):
+            print(f"q={language}, cutoff={cutoff} ...")
+            success = success and gh.repositories_search(
                 run,
                 {
                     "language": language,
                     "cutoff": cutoff,
                 },
-                f"language:{language}",
-                created_after=CUTOFFS[cutoff],
+                f"language:{language} and fork:false",
+                pushed_since=CUTOFFS[cutoff],
+                fetch_all=(language, cutoff) in FETCH_ALL,
             )
-        if cutoff in TOPIC_CUTOFFS:
-            gh.topics_search(
-                run,
-                {
-                    "language": language,
-                    "cutoff": cutoff,
-                },
-                f"{language}",
-                created_after=CUTOFFS[cutoff],
-            )
-        print("")
+            if cutoff in USER_CUTOFFS:
+                success = success and gh.users_search(
+                    run,
+                    {
+                        "language": language,
+                        "cutoff": cutoff,
+                    },
+                    f"language:{language}",
+                    created_after=CUTOFFS[cutoff],
+                )
+            if cutoff in TOPIC_CUTOFFS:
+                success = success and gh.topics_search(
+                    run,
+                    {
+                        "language": language,
+                        "cutoff": cutoff,
+                    },
+                    f"{language}",
+                    created_after=CUTOFFS[cutoff],
+                )
+            print("")
 
-time_end = time.time()
-print(f"Completed in {timedelta(seconds=time_end - time_start)}")
+    run.run_status = "SUCCESS" if success else "HAS_ERRORS"
+    run.update_entry()
+
+    time_end = time.time()
+    print(f"Completed in {timedelta(seconds=time_end - time_start)}")
+
+
+fetch_data()

@@ -1,16 +1,29 @@
 from tabulate import tabulate
 import pandas as pd
 import sqlite3
+import sys
 
-def most_recent_ds(con):
+def most_recent(con):
     query = """
         SELECT
-          MAX(ds) AS ds
-        FROM run;
+          obj_id,
+          ds,
+          run_status
+        FROM run
+        ORDER BY 1 DESC
+        LIMIT 1;
     """
-    return pd.read_sql_query(query, con)['ds'][0]
+    df = pd.read_sql_query(query, con)
+    run_obj_id = df['obj_id'][0]
+    ds = df['ds'][0]
+    run_status = df['run_status'][0]
+    if run_status != "SUCCESS":
+      print(f"Error: most recent run (run_obj_id={run_obj_id}, ds={ds}) has status={run_status}", file = sys.stderr)
+      exit(-1)
 
-def repositories_count(con, ds):
+    return run_obj_id, ds
+
+def repositories_count(con, run_obj_id):
     query = f"""
         SELECT
           task.ds,
@@ -20,14 +33,14 @@ def repositories_count(con, ds):
         FROM task INNER JOIN github_search
           ON task.obj_id = github_search.task_obj_id
         WHERE
-          task.ds = '{ds}'
+          task.run_obj_id = {run_obj_id}
           AND task.task_kind = 'github_repositories_search'
         GROUP BY 1, 2, 3
         ORDER BY 2, 4;
     """
     return pd.read_sql_query(query, con)
 
-def users_count(con, ds):
+def users_count(con, run_obj_id):
     query = f"""
         SELECT
           task.ds,
@@ -37,14 +50,14 @@ def users_count(con, ds):
         FROM task INNER JOIN github_search
           ON task.obj_id = github_search.task_obj_id
         WHERE
-          task.ds = '{ds}'
+          task.run_obj_id = {run_obj_id}
           AND task.task_kind = 'github_users_search'
         GROUP BY 1, 2, 3
         ORDER BY 2, 4;
     """
     return pd.read_sql_query(query, con)
 
-def topics_count(con, ds):
+def topics_count(con, run_obj_id):
     query = f"""
         SELECT
           task.ds,
@@ -54,13 +67,14 @@ def topics_count(con, ds):
         FROM task INNER JOIN github_search
           ON task.obj_id = github_search.task_obj_id
         WHERE
-          task.task_kind = 'github_topics_search'
+          task.run_obj_id = {run_obj_id}
+          AND task.task_kind = 'github_topics_search'
         GROUP BY 1, 2, 3
         ORDER BY 2, 4;
     """
     return pd.read_sql_query(query, con)
 
-def average_repository(con, ds):
+def average_repository(con, run_obj_id):
     query = f"""
         SELECT
           task.ds AS ds,
@@ -81,7 +95,7 @@ def average_repository(con, ds):
           ON github_search.obj_id = github_search_obj_id
           AND task.obj_id = github_search.task_obj_id
         WHERE
-          task.ds = '{ds}'
+          task.run_obj_id = {run_obj_id}
           AND task.task_kind = 'github_repositories_search'
         GROUP BY 1, 2, 3
         ORDER BY 2, 4;
@@ -89,8 +103,16 @@ def average_repository(con, ds):
     return pd.read_sql_query(query, con)
 
 
+def print_windowed_results(df):
+  for window in sorted(set(df['window'])):
+    print(f"""
+### {window}
+    """)
+    print(tabulate(df.loc[df['window'] == window], headers='keys', tablefmt='github'))
+
+
 con = sqlite3.connect("growth-data.db")
-ds = most_recent_ds(con)
+run_obj_id, ds = most_recent(con)
 
 
 print(f"""
@@ -99,12 +121,30 @@ print(f"""
 
 
 print("""
+## Topics
+
+`Window` refers to the number of weeks since the topic was created.
+""")
+
+print_windowed_results(topics_count(con, run_obj_id))
+
+
+print("""
 ## Statistics about non-fork repositories
 
 `Window` refers to the number of weeks since the repository was last pushed.
 """)
 
-print(tabulate(average_repository(con, ds), headers='keys', tablefmt='github'))
+print_windowed_results(average_repository(con, run_obj_id))
+
+
+print("""
+## Repository counts
+
+`Window` refers to the number of weeks since the repository was last pushed.
+""")
+
+print_windowed_results(repositories_count(con, run_obj_id))
 
 
 print("""
@@ -113,25 +153,7 @@ print("""
 `Window` refers to the number of weeks since the account was created.
 """)
 
-print(tabulate(users_count(con, ds), headers='keys', tablefmt='github'))
+print_windowed_results(users_count(con, run_obj_id))
 
-
-print("""
-## Topics
-
-`Window` refers to the number of weeks since the topic was created.
-""")
-
-print(tabulate(topics_count(con, ds), headers='keys', tablefmt='github'))
-
-
-
-print("""
-## Global repository counts
-
-`Window` refers to the number of weeks since the repository was last pushed.
-""")
-
-print(tabulate(repositories_count(con, ds), headers='keys', tablefmt='github'))
 
 con.close()
