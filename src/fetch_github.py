@@ -1,232 +1,17 @@
-from dataclasses import dataclass
-from datalite import datalite
+from config import *
 from datetime import datetime, timedelta, timezone
-import git
+from orm import Run, Task
+from orm_github import GitHub_Rest_Request, GitHub_Search, GitHub_Search_Repo, GitHub_Search_User, GitHub_Search_Topic
+from time import sleep, time
+import argparse
 import json
 import requests
-import time
+import sqlite3
+import sys
 import urllib.parse
 
 now = datetime.now(tz=timezone.utc)
 now_ds = now.strftime("%Y-%m-%d")
-
-@datalite(db_path="growth-data.db")
-@dataclass
-class Run:
-    ds: str
-    ts: str
-    run_commit_hash: str
-    run_status: str
-
-    def new_run():
-        ts = datetime.now(tz=timezone.utc)
-        repo = git.Repo(search_parent_directories=True)
-
-        return Run(
-            ds = str(now_ds),
-            ts = str(ts),
-            run_commit_hash = str(repo.head.object.hexsha),
-            run_status = "STARTED"
-        )
-
-
-@datalite(db_path="growth-data.db")
-@dataclass
-class Task:
-    ds: str
-    ts: str
-    run_obj_id: int
-    task_kind: str
-    task_args: str
-    task_tags: str
-    task_status: str
-
-    def new_task(run: Run, task_kind, task_args, task_tags):
-        ts = datetime.now(tz=timezone.utc)
-
-        return Task(
-            ds = str(now_ds),
-            ts = str(ts),
-            run_obj_id = run.obj_id,
-            task_kind = task_kind,
-            task_args = task_args,
-            task_tags = str(task_tags),
-            task_status = "STARTED"
-        )
-
-@datalite(db_path="growth-data.db")
-@dataclass
-class GitHub_Rest_Request:
-    ds: str
-    ts: str
-    task_obj_id: int
-    github_rest_request_url: str
-    github_rest_request_status: int
-    github_rest_request_data: str
-
-@datalite(db_path="growth-data.db")
-@dataclass
-class GitHub_Search:
-    ds: str
-    task_obj_id: int
-    github_rest_request_obj_id: int
-    github_search_q: str
-    github_search_page: int
-    github_search_per_page: int
-    github_search_total_count: int
-    github_search_incomplete_results: int
-    github_search_len_items: int
-
-    def of_json(task: Task, github_rest_request: GitHub_Rest_Request, q, page, per_page, search_results):
-        return GitHub_Search(
-            ds = str(now_ds),
-            task_obj_id = task.obj_id,
-            github_rest_request_obj_id = github_rest_request.obj_id,
-            github_search_q = q,
-            github_search_page = page,
-            github_search_per_page = per_page,
-            github_search_total_count = int(search_results["total_count"]),
-            github_search_incomplete_results = int(search_results["incomplete_results"]),
-            github_search_len_items = int(len(search_results["items"]))
-        ) 
-
-@datalite(db_path="growth-data.db")
-@dataclass
-class GitHub_Search_Repo:
-    ds: str
-    task_obj_id: int
-    github_search_obj_id: int
-    github_repo_id: int
-    github_repo_name: str
-    github_repo_full_name: str
-    github_repo_owner_login: str
-    github_repo_owner_id: int
-    github_repo_owner_type: str
-    github_repo_fork: int
-    github_repo_created_at: str
-    github_repo_updated_at: str
-    github_repo_pushed_at: str
-    github_repo_git_url: str
-    github_repo_ssh_url: str
-    github_repo_clone_url: str
-    github_repo_homepage: str
-    github_repo_size: int
-    github_repo_stargazers_count: int
-    github_repo_language: str
-    github_repo_has_issues: int
-    github_repo_has_projects: int
-    github_repo_has_downloads: int
-    github_repo_has_wiki: int
-    github_repo_has_pages: int
-    github_repo_forks_count: int
-    github_repo_archived: int
-    github_repo_open_issues_count: int
-    github_repo_license_key: str
-    github_repo_license_name: str
-    github_repo_license_spdx_id: str
-    github_repo_license_url: str
-    github_repo_allow_forking: int
-    github_repo_is_template: int
-    github_repo_topics: str
-    github_repo_default_branch: str
-    github_repo_score: int
-
-    def of_json(task: Task, github_search: GitHub_Search, repo):
-        return GitHub_Search_Repo(
-            ds = str(now_ds),
-            task_obj_id = task.obj_id,
-            github_search_obj_id = int(github_search.obj_id),
-            github_repo_id = int(repo["id"]),
-            github_repo_name = str(repo["name"]),
-            github_repo_full_name = str(repo["full_name"]),
-            github_repo_owner_login = str(repo["owner"]["login"]) if repo["owner"] is not None else "",
-            github_repo_owner_id = int(repo["owner"]["id"]) if repo["owner"] is not None else "",
-            github_repo_owner_type = str(repo["owner"]["type"]) if repo["owner"] is not None else "",
-            github_repo_fork = int(repo["fork"]),
-            github_repo_created_at = str(repo["created_at"]),
-            github_repo_updated_at = str(repo["updated_at"]),
-            github_repo_pushed_at = str(repo["pushed_at"]),
-            github_repo_git_url = str(repo["git_url"]),
-            github_repo_ssh_url = str(repo["ssh_url"]),
-            github_repo_clone_url = str(repo["clone_url"]),
-            github_repo_homepage = str(repo["homepage"]),
-            github_repo_size = int(repo["size"]),
-            github_repo_stargazers_count = int(repo["stargazers_count"]),
-            github_repo_language = str(repo["language"]),
-            github_repo_has_issues = int(repo["has_issues"]),
-            github_repo_has_projects = int(repo["has_projects"]),
-            github_repo_has_downloads = int(repo["has_downloads"]),
-            github_repo_has_wiki = int(repo["has_wiki"]),
-            github_repo_has_pages = int(repo["has_pages"]),
-            github_repo_forks_count = int(repo["forks_count"]),
-            github_repo_archived = int(repo["archived"]),
-            github_repo_open_issues_count = int(repo["open_issues_count"]),
-            github_repo_license_key = str(repo["license"]["key"]) if repo["license"] is not None else "",
-            github_repo_license_name = str(repo["license"]["name"]) if repo["license"] is not None else "",
-            github_repo_license_spdx_id = str(repo["license"]["spdx_id"]) if repo["license"] is not None else "",
-            github_repo_license_url = str(repo["license"]["url"]) if repo["license"] is not None else "",
-            github_repo_allow_forking = int(repo["allow_forking"]),
-            github_repo_is_template = int(repo["is_template"]),
-            github_repo_topics = str(repo["topics"]),
-            github_repo_default_branch = str(repo["default_branch"]),
-            github_repo_score = int(repo["score"]),
-        )
-
-@datalite(db_path="growth-data.db")
-@dataclass
-class GitHub_Search_User:
-    ds: str
-    task_obj_id: int
-    github_search_obj_id: int
-    github_user_login: str
-    github_user_id: int
-    github_user_type: str
-
-    def of_json(task: Task, github_search: GitHub_Search, user):
-        return GitHub_Search_User(
-            ds = str(now_ds),
-            task_obj_id = task.obj_id,
-            github_search_obj_id = int(github_search.obj_id),
-            github_user_login = str(user["login"]),
-            github_user_id = int(user["id"]),
-            github_user_type = str(user["type"])
-        )
-
-@datalite(db_path="growth-data.db")
-@dataclass
-class GitHub_Search_Topic:
-    ds: str
-    task_obj_id: int
-    github_search_obj_id: int
-    github_topic_name: str
-    github_topic_display_name: str
-    github_topic_short_description: str
-    github_topic_description: str
-    github_topic_created_by: str
-    github_topic_released: str
-    github_topic_created_at: str
-    github_topic_updated_at: str
-    github_topic_featured: int
-    github_topic_curated: int
-    github_topic_score: int
-
-    def of_json(task: Task, github_search: GitHub_Search, user):
-        return GitHub_Search_Topic(
-            ds = str(now_ds),
-            task_obj_id = task.obj_id,
-            github_search_obj_id = int(github_search.obj_id),
-            github_topic_name = str(user["name"]),
-            github_topic_display_name = str(user["display_name"]),
-            github_topic_short_description = str(user["short_description"]),
-            github_topic_description = str(user["description"]),
-            github_topic_created_by = str(user["created_by"]),
-            github_topic_released = str(user["released"]),
-            github_topic_created_at = str(user["created_at"]),
-            github_topic_updated_at = str(user["updated_at"]),
-            github_topic_featured = int(user["featured"]),
-            github_topic_curated = int(user["curated"]),
-            github_topic_score = int(user["score"])
-        )
 
 
 class GitHub:
@@ -250,7 +35,7 @@ class GitHub:
             sleep_for = delay - second_since_last
             if sleep_for > 0:
                 print(f"  ... rate limit: sleeping for {sleep_for} seconds ...")
-                time.sleep(sleep_for)
+                sleep(sleep_for)
 
         ts = datetime.now(tz=timezone.utc)
         if is_search:
@@ -305,12 +90,13 @@ class GitHub:
 
         # Log the top-line results
         github_search = GitHub_Search.of_json(
-            task,
-            github_rest_request,
-            q,
-            page,
-            per_page,
-            github_rest_request_data
+            task = task,
+            github_search_type = target,
+            github_rest_request = github_rest_request,
+            q = q,
+            page = page,
+            per_page = per_page,
+            search_results = github_rest_request_data,
         )
         github_search.create_entry()
 
@@ -431,119 +217,132 @@ class GitHub:
         return success
 
 
-CUTOFFS = {
-    "alltime": None,
-    "001_1week": (now - timedelta(weeks=1)).strftime("%Y-%m-%d"),
-    "004_1month": (now - timedelta(weeks=1*4)).strftime("%Y-%m-%d"),
-    "012_3month": (now - timedelta(weeks=3*4)).strftime("%Y-%m-%d"),
-    "024_6month": (now - timedelta(weeks=6*4)).strftime("%Y-%m-%d"),
-    "052_1year": (now - timedelta(weeks=52)).strftime("%Y-%m-%d"),
-    "156_3year": (now - timedelta(weeks=3*52)).strftime("%Y-%m-%d"),
-    "260_5year": (now - timedelta(weeks=5*52)).strftime("%Y-%m-%d"),
-    "520_10year": (now - timedelta(weeks=10*52)).strftime("%Y-%m-%d"),
-}
-
-FULL_LANGUAGES = [
-    "coq",
-    "isabelle",
-    "agda",
-    "lean",
-    "ada",
-    "idris",
-    "tla"
-]
-
-PARTIAL_LANGUAGES = [
-    "ocaml",
-    "haskell",
-    "prolog",
-    "go",
-    "rust",
-    "erlang",
-    "java",
-    "scala",
-    "assembly",
-    "c",
-    "c++",
-    "python",
-    "fortran",
-    "r",
-    "terraform",
-    "verilog"
-]
-
-FETCH_ALL = [
-    (language, cutoff)
-    for language in FULL_LANGUAGES
-    for cutoff in [
-        "alltime",
-        "004_1month",
-        "024_6month",
-        "052_1year",
-        "156_3year",
-    ]
-]
-
-USER_CUTOFFS = [
-    "alltime",
-    "004_1month",
-    "052_1year",
-    "260_5year",
-]
-
-TOPIC_CUTOFFS = [
-    "alltime",
-]
-
-
-def fetch_data():
-    gh = GitHub()
-    time_start = time.time()
-    run = Run.new_run()
-    run.create_entry()
-
+def weekly_stats(run):
     success = True
 
-    for cutoff in CUTOFFS:
-        for language in (FULL_LANGUAGES + PARTIAL_LANGUAGES):
-            print(f"q={language}, cutoff={cutoff} ...")
+    for window in GITHUB_WINDOWS:
+        for language in (GITHUB_LANGUAGES):
+            print(f"q={language}, window={window} ...")
             success = success and gh.repositories_search(
                 run,
                 {
                     "language": language,
-                    "cutoff": cutoff,
+                    "window": window,
                 },
                 f"language:{language} and fork:false",
-                pushed_since=CUTOFFS[cutoff],
-                fetch_all=(language, cutoff) in FETCH_ALL,
+                pushed_since=(now - GITHUB_WINDOWS[window]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[window] is not None else None,
+                fetch_all=(language, window) in GITHUB_FETCH_ALL,
             )
-            if cutoff in USER_CUTOFFS:
+            if window in GITHUB_USER_WINDOWS:
                 success = success and gh.users_search(
                     run,
                     {
                         "language": language,
-                        "cutoff": cutoff,
+                        "window": window,
                     },
                     f"language:{language}",
-                    created_after=CUTOFFS[cutoff],
+                    created_after=(now - GITHUB_WINDOWS[window]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[window] is not None else None,
                 )
-            if cutoff in TOPIC_CUTOFFS:
+            if window in GITHUB_TOPIC_WINDOWS:
                 success = success and gh.topics_search(
                     run,
                     {
                         "language": language,
-                        "cutoff": cutoff,
+                        "window": window,
                     },
                     f"{language}",
-                    created_after=CUTOFFS[cutoff],
+                    created_after=(now - GITHUB_WINDOWS[window]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[window] is not None else None,
                 )
             print("")
+    return success
+
+
+def discover_repos(run):
+    query = f"""
+        INSERT INTO github_discovered_repo (ds, run_obj_id, github_repo_id, github_repo_full_name, languages)
+        SELECT
+            task.ds as ds,
+            task.run_obj_id as run_obj_id,
+            github_repo_id,
+            github_repo_full_name,
+            JSON_GROUP_ARRAY(JSON_EXTRACT(task.task_tags, '$.language')) AS languages
+        FROM task INNER JOIN github_search_repo
+            ON task.obj_id = github_search_repo.task_obj_id
+        WHERE
+            task.run_obj_id = {run.obj_id}
+            AND task.task_kind = 'github_repositories_search'
+        GROUP BY 1, 2, 3, 4
+        ORDER BY 1, 5;
+    """
+    con = sqlite3.connect('growth-data.db')
+    cur = con.cursor()
+    cur.execute(query)
+    con.commit()
+    con.close()
+
+def see_repos(run):
+    query = f"""
+        INSERT INTO github_seen_repo (ds, github_repo_id, github_repo_full_name, first_seen_ds, last_seen_ds, languages)
+        SELECT
+            '{run.ds}' AS ds,
+            github_repo_id,
+            github_repo_full_name,
+            MIN(first_seen_ds) AS first_seen_ds,
+            MAX(last_seen_ds) AS last_seen_ds,
+            JSON_GROUP_ARRAY(language) AS languages
+        FROM (
+            SELECT DISTINCT
+                github_repo_id,
+                github_repo_full_name,
+                ds AS first_seen_ds,
+                ds AS last_seen_ds,
+                json_each.value as language
+            FROM
+                github_discovered_repo, JSON_EACH(github_discovered_repo.languages)
+            WHERE
+                run_obj_id = {run.ds}
+
+            UNION
+
+            SELECT DISTINCT
+                github_repo_id,
+                github_repo_full_name,
+                first_seen_ds,
+                last_seen_ds,
+                json_each.value as language
+            FROM
+                github_seen_repo, JSON_EACH(github_seen_repo.languages)
+        )
+        GROUP BY 1, 2
+        ORDER BY 5;
+    """
+    con = sqlite3.connect('growth-data.db')
+    cur = con.cursor()
+    cur.execute(query)
+    con.commit()
+    con.close()
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mode", help="either 'daily' or 'weekly'")
+    args = parser.parse_args()
+
+    time_start = time()
+    gh = GitHub()
+    run = Run.new_run(args.mode)
+    run.create_entry()
+
+    success = True
+    if args.mode == 'weekly':
+        success = success and weekly_stats(run)
+        success = success and discover_repos(run)
+        success = success and see_repos(run)
+    else:
+        success = False
+        print(f"unknown mode: {args.mode}", file=sys.stderr)
 
     run.run_status = "SUCCESS" if success else "HAS_ERRORS"
     run.update_entry()
 
-    time_end = time.time()
+    time_end = time()
     print(f"Completed in {timedelta(seconds=time_end - time_start)}")
-
-
-fetch_data()

@@ -18,7 +18,7 @@ def most_recent(con):
     ds = df['ds'][0]
     run_status = df['run_status'][0]
     if run_status != "SUCCESS":
-      print(f"Error: most recent run (run_obj_id={run_obj_id}, ds={ds}) has status={run_status}", file = sys.stderr)
+      print(f"Error: most recent run (run_obj_id={run_obj_id}, ds={ds}) has status={run_status}", file=sys.stderr)
       exit(-1)
 
     return run_obj_id, ds
