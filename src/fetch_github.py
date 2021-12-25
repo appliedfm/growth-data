@@ -10,7 +10,7 @@ import urllib.parse
 now = datetime.now(tz=timezone.utc)
 now_ds = now.strftime("%Y-%m-%d")
 
-@datalite(db_path="github.db")
+@datalite(db_path="growth-data.db")
 @dataclass
 class Run:
     ds: str
@@ -28,7 +28,7 @@ class Run:
         )
 
 
-@datalite(db_path="github.db")
+@datalite(db_path="growth-data.db")
 @dataclass
 class Task:
     ds: str
@@ -50,7 +50,7 @@ class Task:
             task_tags = str(task_tags),
         )
 
-@datalite(db_path="github.db")
+@datalite(db_path="growth-data.db")
 @dataclass
 class GitHub_Rest_Request:
     ds: str
@@ -60,7 +60,7 @@ class GitHub_Rest_Request:
     github_rest_request_status: int
     github_rest_request_data: str
 
-@datalite(db_path="github.db")
+@datalite(db_path="growth-data.db")
 @dataclass
 class GitHub_Search:
     ds: str
@@ -86,7 +86,7 @@ class GitHub_Search:
             github_search_len_items = int(len(search_results["items"]))
         ) 
 
-@datalite(db_path="github.db")
+@datalite(db_path="growth-data.db")
 @dataclass
 class GitHub_Search_Repo:
     ds: str
@@ -168,7 +168,7 @@ class GitHub_Search_Repo:
             github_repo_score = int(repo["score"]),
         )
 
-@datalite(db_path="github.db")
+@datalite(db_path="growth-data.db")
 @dataclass
 class GitHub_Search_User:
     ds: str
@@ -188,7 +188,7 @@ class GitHub_Search_User:
             github_user_type = str(user["type"])
         )
 
-@datalite(db_path="github.db")
+@datalite(db_path="growth-data.db")
 @dataclass
 class GitHub_Search_Topic:
     ds: str

@@ -1,2 +1,4 @@
 datalite
 gitpython
+pandas
+tabulate
