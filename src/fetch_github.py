@@ -265,7 +265,7 @@ def weekly_stats(run):
 
 def weekly_discovery(run):
     success = True
-    for language in GITHUB_FULL_LANGUAGES + GITHUB_DISCOVER_LANGUAGES:
+    for language in GITHUB_DISCOVER_LANGUAGES:
         print(f"discover {language} ...")
         success = success and gh.repositories_search(
             run,
