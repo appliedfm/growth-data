@@ -27,7 +27,7 @@ def repositories_count(con, run_obj_id):
     query = f"""
         SELECT
           task.ds,
-          JSON_EXTRACT(task.task_tags, '$.cutoff') AS window,
+          JSON_EXTRACT(task.task_tags, '$.window') AS window,
           JSON_EXTRACT(task.task_tags, '$.language') AS language,
           MAX(github_search_total_count) AS num_repos
         FROM task INNER JOIN github_search
@@ -35,6 +35,7 @@ def repositories_count(con, run_obj_id):
         WHERE
           task.run_obj_id = {run_obj_id}
           AND task.task_kind = 'github_repositories_search'
+          AND JSON_EXTRACT(task.task_tags, '$.stats')
         GROUP BY 1, 2, 3
         ORDER BY 2, 4;
     """
@@ -44,7 +45,7 @@ def users_count(con, run_obj_id):
     query = f"""
         SELECT
           task.ds,
-          JSON_EXTRACT(task.task_tags, '$.cutoff') AS window,
+          JSON_EXTRACT(task.task_tags, '$.window') AS window,
           JSON_EXTRACT(task.task_tags, '$.language') AS language,
           MAX(github_search_total_count) AS num_users
         FROM task INNER JOIN github_search
@@ -52,6 +53,7 @@ def users_count(con, run_obj_id):
         WHERE
           task.run_obj_id = {run_obj_id}
           AND task.task_kind = 'github_users_search'
+          AND JSON_EXTRACT(task.task_tags, '$.stats')
         GROUP BY 1, 2, 3
         ORDER BY 2, 4;
     """
@@ -61,7 +63,7 @@ def topics_count(con, run_obj_id):
     query = f"""
         SELECT
           task.ds,
-          JSON_EXTRACT(task.task_tags, '$.cutoff') AS window,
+          JSON_EXTRACT(task.task_tags, '$.window') AS window,
           JSON_EXTRACT(task.task_tags, '$.language') AS language,
           MAX(github_search_total_count) AS num_topics
         FROM task INNER JOIN github_search
@@ -69,6 +71,7 @@ def topics_count(con, run_obj_id):
         WHERE
           task.run_obj_id = {run_obj_id}
           AND task.task_kind = 'github_topics_search'
+          AND JSON_EXTRACT(task.task_tags, '$.stats')
         GROUP BY 1, 2, 3
         ORDER BY 2, 4;
     """
@@ -78,7 +81,7 @@ def average_repository(con, run_obj_id):
     query = f"""
         SELECT
           task.ds AS ds,
-          JSON_EXTRACT(task.task_tags, '$.cutoff') AS window,
+          JSON_EXTRACT(task.task_tags, '$.window') AS window,
           JSON_EXTRACT(task.task_tags, '$.language') AS language,
           COUNT(*) AS repos,
           SUM(github_repo_has_issues) AS repos_with_issues,
@@ -97,8 +100,24 @@ def average_repository(con, run_obj_id):
         WHERE
           task.run_obj_id = {run_obj_id}
           AND task.task_kind = 'github_repositories_search'
+          AND JSON_EXTRACT(task.task_tags, '$.stats')
         GROUP BY 1, 2, 3
         ORDER BY 2, 4;
+    """
+    return pd.read_sql_query(query, con)
+
+
+def seen_repositories_by_language(con, run_obj_id):
+    query = f"""
+        SELECT
+          ds,
+          languages,
+          count(*) as seen_repos
+        FROM github_seen_repo
+        WHERE
+          run_obj_id = {run_obj_id}
+        GROUP BY 1, 2
+        ORDER BY 1, 2;
     """
     return pd.read_sql_query(query, con)
 

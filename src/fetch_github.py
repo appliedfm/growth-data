@@ -232,6 +232,7 @@ def weekly_stats(run):
                 {
                     "language": language,
                     "window": window,
+                    "stats": True,
                 },
                 f"language:{language} and fork:false",
                 pushed_since=(now - GITHUB_WINDOWS[window]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[window] is not None else None,
@@ -243,6 +244,7 @@ def weekly_stats(run):
                     {
                         "language": language,
                         "window": window,
+                        "stats": True,
                     },
                     f"language:{language}",
                     created_after=(now - GITHUB_WINDOWS[window]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[window] is not None else None,
@@ -253,6 +255,7 @@ def weekly_stats(run):
                     {
                         "language": language,
                         "window": window,
+                        "stats": True,
                     },
                     f"{language}",
                     created_after=(now - GITHUB_WINDOWS[window]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[window] is not None else None,
@@ -268,6 +271,7 @@ def weekly_discovery(run):
             run,
             {
                 "language": language,
+                "discovery": True,
                 "window": GITHUB_DISCOVER_WINDOW,
                 "stars": GITHUB_DISCOVER_STARS,
                 "topics": GITHUB_DISCOVER_TOPICS,
