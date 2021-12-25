@@ -418,15 +418,15 @@ class GitHub:
 
 
 CUTOFFS = {
-    "1week": (now - timedelta(weeks=1)).strftime("%Y-%m-%d"),
-    "1month": (now - timedelta(weeks=1*4)).strftime("%Y-%m-%d"),
-    "3month": (now - timedelta(weeks=3*4)).strftime("%Y-%m-%d"),
-    "6month": (now - timedelta(weeks=6*4)).strftime("%Y-%m-%d"),
-    "1year": (now - timedelta(weeks=52)).strftime("%Y-%m-%d"),
-    "3year": (now - timedelta(weeks=3*52)).strftime("%Y-%m-%d"),
-    "5year": (now - timedelta(weeks=5*52)).strftime("%Y-%m-%d"),
-    "10year": (now - timedelta(weeks=10*52)).strftime("%Y-%m-%d"),
-    "alltime": None
+    "alltime": None,
+    "001_1week": (now - timedelta(weeks=1)).strftime("%Y-%m-%d"),
+    "004_1month": (now - timedelta(weeks=1*4)).strftime("%Y-%m-%d"),
+    "012_3month": (now - timedelta(weeks=3*4)).strftime("%Y-%m-%d"),
+    "024_6month": (now - timedelta(weeks=6*4)).strftime("%Y-%m-%d"),
+    "052_1year": (now - timedelta(weeks=52)).strftime("%Y-%m-%d"),
+    "156_3year": (now - timedelta(weeks=3*52)).strftime("%Y-%m-%d"),
+    "260_5year": (now - timedelta(weeks=5*52)).strftime("%Y-%m-%d"),
+    "520_10year": (now - timedelta(weeks=10*52)).strftime("%Y-%m-%d"),
 }
 
 FULL_LANGUAGES = [
@@ -461,14 +461,20 @@ PARTIAL_LANGUAGES = [
 FETCH_ALL = [
     (language, cutoff)
     for language in FULL_LANGUAGES
-    for cutoff in ["1month"]
+    for cutoff in [
+        "alltime",
+        "004_1month",
+        "024_6month",
+        "052_1year",
+        "156_3year",
+    ]
 ]
 
 USER_CUTOFFS = [
-    "1month",
-    "1year",
-    "5year",
     "alltime",
+    "004_1month",
+    "052_1year",
+    "260_5year",
 ]
 
 TOPIC_CUTOFFS = [
@@ -487,7 +493,8 @@ for cutoff in CUTOFFS:
         gh.repositories_search(
             run,
             {
-                "cutoff": cutoff
+                "language": language,
+                "cutoff": cutoff,
             },
             f"language:{language} and fork:false",
             pushed_since=CUTOFFS[cutoff],
@@ -497,7 +504,8 @@ for cutoff in CUTOFFS:
             gh.users_search(
                 run,
                 {
-                    "cutoff": cutoff
+                    "language": language,
+                    "cutoff": cutoff,
                 },
                 f"language:{language}",
                 created_after=CUTOFFS[cutoff],
@@ -506,7 +514,8 @@ for cutoff in CUTOFFS:
             gh.topics_search(
                 run,
                 {
-                    "cutoff": cutoff
+                    "language": language,
+                    "cutoff": cutoff,
                 },
                 f"{language}",
                 created_after=CUTOFFS[cutoff],
