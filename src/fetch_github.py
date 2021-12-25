@@ -7,7 +7,8 @@ import requests
 import time
 import urllib.parse
 
-now_ds = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
+now = datetime.now(tz=timezone.utc)
+now_ds = now.strftime("%Y-%m-%d")
 
 @datalite(db_path="github.db")
 @dataclass
@@ -35,8 +36,9 @@ class Task:
     run_obj_id: int
     task_kind: str
     task_args: str
+    task_tags: str
 
-    def new_task(run: Run, task_kind, task_args):
+    def new_task(run: Run, task_kind, task_args, task_tags):
         ts = datetime.now(tz=timezone.utc)
 
         return Task(
@@ -44,7 +46,8 @@ class Task:
             ts = str(ts),
             run_obj_id = run.obj_id,
             task_kind = task_kind,
-            task_args = task_args
+            task_args = task_args,
+            task_tags = str(task_tags),
         )
 
 @datalite(db_path="github.db")
@@ -165,8 +168,67 @@ class GitHub_Search_Repo:
             github_repo_score = int(repo["score"]),
         )
 
+@datalite(db_path="github.db")
+@dataclass
+class GitHub_Search_User:
+    ds: str
+    task_obj_id: int
+    github_search_obj_id: int
+    github_user_login: str
+    github_user_id: int
+    github_user_type: str
+
+    def of_json(task: Task, github_search: GitHub_Search, user):
+        return GitHub_Search_User(
+            ds = str(now_ds),
+            task_obj_id = task.obj_id,
+            github_search_obj_id = int(github_search.obj_id),
+            github_user_login = str(user["login"]),
+            github_user_id = int(user["id"]),
+            github_user_type = str(user["type"])
+        )
+
+@datalite(db_path="github.db")
+@dataclass
+class GitHub_Search_Topic:
+    ds: str
+    task_obj_id: int
+    github_search_obj_id: int
+    github_topic_name: str
+    github_topic_display_name: str
+    github_topic_short_description: str
+    github_topic_description: str
+    github_topic_created_by: str
+    github_topic_released: str
+    github_topic_created_at: str
+    github_topic_updated_at: str
+    github_topic_featured: int
+    github_topic_curated: int
+    github_topic_score: int
+
+    def of_json(task: Task, github_search: GitHub_Search, user):
+        return GitHub_Search_Topic(
+            ds = str(now_ds),
+            task_obj_id = task.obj_id,
+            github_search_obj_id = int(github_search.obj_id),
+            github_topic_name = str(user["name"]),
+            github_topic_display_name = str(user["display_name"]),
+            github_topic_short_description = str(user["short_description"]),
+            github_topic_description = str(user["description"]),
+            github_topic_created_by = str(user["created_by"]),
+            github_topic_released = str(user["released"]),
+            github_topic_created_at = str(user["created_at"]),
+            github_topic_updated_at = str(user["updated_at"]),
+            github_topic_featured = int(user["featured"]),
+            github_topic_curated = int(user["curated"]),
+            github_topic_score = int(user["score"])
+        )
+
+
 class GitHub:
-    def __init__(self, query_delay=3, search_delay=10):
+    def __init__(self, query_delay=3, search_delay=7, search_results_max=1000):
+        self.search_results_max = search_results_max
+
         self.last_query = None
         self.query_delay = query_delay
 
@@ -193,7 +255,7 @@ class GitHub:
             self.last_query = ts
         return ts
 
-    def do_request(self, task, api_url, is_search=False):
+    def do_request(self, task, api_url, is_search=False, retries=1):
         print(f"  ... do_request(\"{api_url}\")")
         ts = self.ratelimit(is_search)
 
@@ -209,14 +271,23 @@ class GitHub:
             github_rest_request_data = str(github_rest_request_data)
         )
         github_rest_request.create_entry()
+
+        if 200 != status and 0 < retries:
+            return do_request(
+                task = task,
+                api_url = api_url,
+                is_search = is_search,
+                retries = retries - 1
+            )
+
         return github_rest_request, github_rest_request_data
 
-    def do_repositories_search(self, task, q, page, per_page, fetch_all):
-        print(f"repositories_search(q={q}, page={page}, per_page={per_page}, fetch_all={fetch_all})")
+    def do_search(self, task, target, item_of_json, q, page, per_page, fetch_all):
+        print(f"{target}_search(q={q}, page={page}, per_page={per_page}, fetch_all={fetch_all})")
 
         github_rest_request, github_rest_request_data = self.do_request(
             task,
-            f"https://api.github.com/search/repositories?q={urllib.parse.quote(q)}&page={page}&per_page={per_page}",
+            f"https://api.github.com/search/{target}?q={urllib.parse.quote(q)}&page={page}&per_page={per_page}",
             is_search=True
         )
 
@@ -240,26 +311,28 @@ class GitHub:
         github_search.create_entry()
 
         if fetch_all:
-            # Log each of the repos
-            for github_search_repo_data in github_rest_request_data["items"]:
-                github_search_repo = GitHub_Search_Repo.of_json(
+            # Log each of the results
+            for github_search_item_data in github_rest_request_data["items"]:
+                github_search_item = item_of_json(
                     task,
                     github_search,
-                    github_search_repo_data
+                    github_search_item_data
                 )
-                github_search_repo.create_entry()
+                github_search_item.create_entry()
 
             # Continue to the next page
-            if total_so_far < total_count:
-                self.do_repositories_search(
+            if total_so_far < total_count and total_so_far < self.search_results_max:
+                self.do_search(
                     task,
+                    target,
+                    item_of_json,
                     q,
                     page = page + 1,
                     per_page = per_page,
                     fetch_all = fetch_all
                 )
 
-    def repositories_search(self, run: Run, q, page=1, per_page=75, fetch_all=False):
+    def repositories_search(self, run: Run, tags, q, pushed_since=None, page=1, per_page=75, fetch_all=False):
         if not fetch_all:
             per_page=1
 
@@ -268,27 +341,93 @@ class GitHub:
             task_kind = "github_repositories_search",
             task_args = json.dumps({
                 "q": q,
+                "pushed_since": pushed_since,
                 "page": page,
                 "per_page": per_page,
                 "fetch_all": fetch_all
-            })
+            }),
+            task_tags = json.dumps(tags),
+        )
+        task.create_entry()
+
+        self.do_search(
+            task,
+            "repositories",
+            GitHub_Search_Repo.of_json,
+            q + (f" and pushed:>{pushed_since}" if pushed_since is not None else ""),
+            page = page,
+            per_page = per_page,
+            fetch_all = fetch_all
+        )
+
+    def users_search(self, run: Run, tags, q, created_after=None, page=1, per_page=75, fetch_all=False):
+        if not fetch_all:
+            per_page=1
+
+        task = Task.new_task(
+            run,
+            task_kind = "github_users_search",
+            task_args = json.dumps({
+                "q": q,
+                "created_after": created_after,
+                "page": page,
+                "per_page": per_page,
+                "fetch_all": fetch_all
+            }),
+            task_tags = json.dumps(tags),
         )
         task.create_entry()
         
-        self.do_repositories_search(
+        self.do_search(
             task,
-            q,
+            "users",
+            GitHub_Search_User.of_json,
+            q + (f" and created:>{created_after}" if created_after is not None else ""),
+            page = page,
+            per_page = per_page,
+            fetch_all = fetch_all
+        )
+
+    def topics_search(self, run: Run, tags, q, created_after=None, page=1, per_page=75, fetch_all=False):
+        if not fetch_all:
+            per_page=1
+
+        task = Task.new_task(
+            run,
+            task_kind = "github_topics_search",
+            task_args = json.dumps({
+                "q": q,
+                "created_after": created_after,
+                "page": page,
+                "per_page": per_page,
+                "fetch_all": fetch_all
+            }),
+            task_tags = json.dumps(tags),
+        )
+        task.create_entry()
+        
+        self.do_search(
+            task,
+            "topics",
+            GitHub_Search_Topic.of_json,
+            q + (f" and created:>{created_after}" if created_after is not None else ""),
             page = page,
             per_page = per_page,
             fetch_all = fetch_all
         )
 
 
-
-gh = GitHub()
-time_start = time.time()
-run = Run.new_run()
-run.create_entry()
+CUTOFFS = {
+    "1week": (now - timedelta(weeks=1)).strftime("%Y-%m-%d"),
+    "1month": (now - timedelta(weeks=1*4)).strftime("%Y-%m-%d"),
+    "3month": (now - timedelta(weeks=3*4)).strftime("%Y-%m-%d"),
+    "6month": (now - timedelta(weeks=6*4)).strftime("%Y-%m-%d"),
+    "1year": (now - timedelta(weeks=52)).strftime("%Y-%m-%d"),
+    "3year": (now - timedelta(weeks=3*52)).strftime("%Y-%m-%d"),
+    "5year": (now - timedelta(weeks=5*52)).strftime("%Y-%m-%d"),
+    "10year": (now - timedelta(weeks=10*52)).strftime("%Y-%m-%d"),
+    "alltime": None
+}
 
 FULL_LANGUAGES = [
     "coq",
@@ -299,9 +438,6 @@ FULL_LANGUAGES = [
     "idris",
     "tla"
 ]
-
-for language in FULL_LANGUAGES:
-    gh.repositories_search(run, f"language:{language} and fork:false", fetch_all=True)
 
 PARTIAL_LANGUAGES = [
     "ocaml",
@@ -322,9 +458,60 @@ PARTIAL_LANGUAGES = [
     "verilog"
 ]
 
-for language in PARTIAL_LANGUAGES:
-    gh.repositories_search(run, f"language:{language} and fork:false")
+FETCH_ALL = [
+    (language, cutoff)
+    for language in FULL_LANGUAGES
+    for cutoff in ["1month"]
+]
 
+USER_CUTOFFS = [
+    "1month",
+    "1year",
+    "5year",
+    "alltime",
+]
+
+TOPIC_CUTOFFS = [
+    "alltime",
+]
+
+
+gh = GitHub()
+time_start = time.time()
+run = Run.new_run()
+run.create_entry()
+
+for cutoff in CUTOFFS:
+    for language in (FULL_LANGUAGES + PARTIAL_LANGUAGES):
+        print(f"q={language}, cutoff={cutoff} ...")
+        gh.repositories_search(
+            run,
+            {
+                "cutoff": cutoff
+            },
+            f"language:{language} and fork:false",
+            pushed_since=CUTOFFS[cutoff],
+            fetch_all=(language, cutoff) in FETCH_ALL,
+        )
+        if cutoff in USER_CUTOFFS:
+            gh.users_search(
+                run,
+                {
+                    "cutoff": cutoff
+                },
+                f"language:{language}",
+                created_after=CUTOFFS[cutoff],
+            )
+        if cutoff in TOPIC_CUTOFFS:
+            gh.topics_search(
+                run,
+                {
+                    "cutoff": cutoff
+                },
+                f"{language}",
+                created_after=CUTOFFS[cutoff],
+            )
+        print("")
 
 time_end = time.time()
 print(f"Completed in {timedelta(seconds=time_end - time_start)}")
