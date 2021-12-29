@@ -1,4 +1,2 @@
-datalite
-gitpython
 pandas
 tabulate
