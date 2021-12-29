@@ -109,7 +109,7 @@ def repo_query_string(context, query):
     return q
 
 def repo_task(context, gh, dataset_name, task_outdir, args, queries):
-    print(f"repo_task({dataset_name}, {task_outdir}, {json.dumps(args)}, {len(queries)} queries)")
+    print(f"repo_task({dataset_name}, {task_outdir}, {json.dumps(args)}, {len(queries)} queries)", flush=True)
     counts_df = pd.DataFrame(columns=('ds', 'sortby', 'language', 'pushed', 'repo_count', 'repo_data_count'))
     repos_df = pd.DataFrame(dtype=float, columns=(
         'ds',
@@ -144,7 +144,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
             sortby=query['args']['sort-by'],
         )
         if 200 != status:
-            print(f"  ... error: status={status}", file=sys.stderr)
+            print(f"  ... error: status={status}", file=sys.stderr, flush=True)
             return
         counts_df = counts_df.append(
             {
@@ -222,7 +222,7 @@ def user_query_string(context, query):
     return q
 
 def user_task(context, gh, dataset_name, task_outdir, args, queries):
-    print(f"user_task({dataset_name}, {task_outdir}, {json.dumps(args)}, {len(queries)} queries)")
+    print(f"user_task({dataset_name}, {task_outdir}, {json.dumps(args)}, {len(queries)} queries)", flush=True)
     counts_df = pd.DataFrame(columns=('ds', 'language', 'created', 'user_count'))
     for query in queries:
         status, total, _ = gh.do_search(
@@ -230,7 +230,7 @@ def user_task(context, gh, dataset_name, task_outdir, args, queries):
             q=user_query_string(context, query),
         )
         if 200 != status:
-            print(f"  ... error: status={status}", file=sys.stderr)
+            print(f"  ... error: status={status}", file=sys.stderr, flush=True)
             return
         counts_df = counts_df.append(
             {
@@ -245,7 +245,7 @@ def user_task(context, gh, dataset_name, task_outdir, args, queries):
 
 def plan_tasks(dataset_name):
     if dataset_name not in GITHUB_DATASETS:
-        print(f"unknown task: {dataset_name}", file=sys.stderr)
+        print(f"unknown task: {dataset_name}", file=sys.stderr, flush=True)
         exit(-1)
     task = GITHUB_DATASETS[dataset_name]
     if "repo" == task["type"]:
@@ -286,7 +286,7 @@ def plan_tasks(dataset_name):
                 })
         return task_plan
     else:
-        print(f"unknown task type: {task['type']}", file=sys.stderr)
+        print(f"unknown task type: {task['type']}", file=sys.stderr, flush=True)
         exit(-1)
 
 if __name__=="__main__":
@@ -315,7 +315,7 @@ if __name__=="__main__":
     }
     for window in GITHUB_WINDOWS:
         context['windows'][window] = (ts - GITHUB_WINDOWS[window]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[window] is not None else None
-    print(f"{json.dumps(context, indent=4, sort_keys=True)}\n")
+    print(f"{json.dumps(context, indent=4, sort_keys=True)}\n", flush=True)
 
     time_start = time()
 
@@ -324,7 +324,7 @@ if __name__=="__main__":
     for dataset_name in dataset_names:
         tasks[dataset_name] = plan_tasks(dataset_name)
 
-    print("Planning tasks ...")
+    print("Planning tasks ...", flush=True)
     total_est_time = 0
     total_query_count = 0
     for dataset_name in tasks:
@@ -335,13 +335,13 @@ if __name__=="__main__":
         total_est_time = total_est_time + est_time
         total_query_count = total_query_count + query_count
         est_time = timedelta(seconds=est_time)
-        print(f"{dataset_name}: {query_count} queries planned; estimated time: {est_time}")
+        print(f"{dataset_name}: {query_count} queries planned; estimated time: {est_time}", flush=True)
 
     total_est_time = timedelta(seconds=total_est_time)
-    print(f"{len(tasks)} tasks ({total_query_count} queries) planned; estimated total time: {total_est_time}\n")
+    print(f"{len(tasks)} tasks ({total_query_count} queries) planned; estimated total time: {total_est_time}\n", flush=True)
 
     if args.noexec:
-        print("exiting (noexec)")
+        print("exiting (noexec)", flush=True)
     else:
         gh = GitHub(disable_ratelimit=args.disable_ratelimit)
         for dataset_name in tasks:
@@ -362,4 +362,4 @@ if __name__=="__main__":
             )
 
     time_end = time()
-    print(f"\nCompleted in {timedelta(seconds=time_end - time_start)}")
+    print(f"\nCompleted in {timedelta(seconds=time_end - time_start)}", flush=True)
