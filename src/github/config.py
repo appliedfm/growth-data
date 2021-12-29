@@ -49,6 +49,36 @@ GITHUB_OTHER_LANGUAGES = [
 ]
 
 GITHUB_DATASETS = {
+    "user-alltime-counts": {
+        "type": "user",
+        "args": {
+            "language": GITHUB_FULL_LANGUAGES + GITHUB_PARTIAL_LANGUAGES + GITHUB_OTHER_LANGUAGES,
+            "created": [
+                "alltime",
+                "004_1month",
+                "013_3month",
+                "052_1year",
+                "261_5year",
+            ]
+        }
+    },
+    "repo-alltime-counts": {
+        "type": "repo",
+        "stats": False,
+        "args": {
+            "language": GITHUB_FULL_LANGUAGES + GITHUB_PARTIAL_LANGUAGES + GITHUB_OTHER_LANGUAGES,
+            "sort-by": [None],
+            "pushed": [
+                "alltime",
+                "001_1week",
+                "004_1month",
+                "013_3month",
+                "026_6month",
+                "052_1year",
+                "156_3year",
+            ],
+        }
+    },
     "repo-weekly-stats": {
         "type": "repo",
         "stats": True,
@@ -74,34 +104,4 @@ GITHUB_DATASETS = {
             ],
         }
     },
-    "repo-alltime-counts": {
-        "type": "repo",
-        "stats": False,
-        "args": {
-            "language": GITHUB_FULL_LANGUAGES + GITHUB_PARTIAL_LANGUAGES + GITHUB_OTHER_LANGUAGES,
-            "sort-by": [None],
-            "pushed": [
-                "alltime",
-                "001_1week",
-                "004_1month",
-                "013_3month",
-                "026_6month",
-                "052_1year",
-                "156_3year",
-            ],
-        }
-    },
-    "user-alltime-counts": {
-        "type": "user",
-        "args": {
-            "language": GITHUB_FULL_LANGUAGES + GITHUB_PARTIAL_LANGUAGES + GITHUB_OTHER_LANGUAGES,
-            "created": [
-                "alltime",
-                "004_1month",
-                "013_3month",
-                "052_1year",
-                "261_5year",
-            ]
-        }
-    }
 }
