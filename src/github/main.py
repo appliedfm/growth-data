@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from time import time
 import argparse
 import json
+import os
 import sys
 
 def plan_tasks(dataset_name):
@@ -85,14 +86,17 @@ if __name__=="__main__":
         context['windows'][window] = (ts - GITHUB_WINDOWS[window]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[window] is not None else None
     print(f"{json.dumps(context, indent=4, sort_keys=True)}\n", flush=True)
 
-    time_start = time()
+    total_time_start = time()
 
     dataset_names = GITHUB_DATASETS.keys() if "all" in args.dataset_names else args.dataset_names
     tasks = {}
+    context['task_log'] = {}
+
+    print("Planning tasks ...", flush=True)
+
     for dataset_name in dataset_names:
         tasks[dataset_name] = plan_tasks(dataset_name)
 
-    print("Planning tasks ...", flush=True)
     total_est_time_lo = 0
     total_est_time_hi = 0
     total_query_count = 0
@@ -108,17 +112,31 @@ if __name__=="__main__":
         total_query_count = total_query_count + query_count
         est_time_lo = timedelta(seconds=est_time_lo)
         est_time_hi = timedelta(seconds=est_time_hi)
+        context['task_log'][dataset_name] = {
+            'query_count': query_count,
+            'est_time_lo': str(est_time_lo),
+            'est_time_hi': str(est_time_hi),
+        }
         print(f"{dataset_name}: {query_count} queries planned; estimated time: {est_time_lo} - {est_time_hi}", flush=True)
 
     total_est_time_lo = timedelta(seconds=total_est_time_lo)
     total_est_time_hi = timedelta(seconds=total_est_time_hi)
-    print(f"{len(tasks)} tasks ({total_query_count} queries) planned; estimated total time: {total_est_time_lo} - {total_est_time_hi}\n", flush=True)
+    context['task_log']['_total'] = {
+        'query_count': total_query_count,
+        'est_time_lo': str(total_est_time_lo),
+        'est_time_hi': str(total_est_time_hi),
+    }
+    print(f"{len(tasks)} tasks ({context['task_log']['_total']['query_count']} queries) planned; estimated total time: {context['task_log']['_total']['est_time_lo']} - {context['task_log']['_total']['est_time_hi']}\n", flush=True)
+
+    print("Running tasks ...", flush=True)
 
     if args.noexec:
         print("exiting (noexec)", flush=True)
     else:
         gh = GitHub(disable_ratelimit=args.disable_ratelimit)
         for dataset_name in tasks:
+            print(f"... {dataset_name} ...", flush=True)
+            time_start = time()
             task_outdir = os.path.join(
                 context['outdir'],
                 dataset_name,
@@ -134,6 +152,20 @@ if __name__=="__main__":
                 args = tasks[dataset_name]['args'],
                 queries = tasks[dataset_name]["queries"]
             )
+            time_end = time()
+            context['task_log'][dataset_name]['time'] = str(timedelta(seconds=time_end - time_start))
+            print(f"... completed {dataset_name} ({context['task_log'][dataset_name]['query_count']} queries) in {context['task_log'][dataset_name]['time']} (estimated total time was {context['task_log'][dataset_name]['est_time_lo']} - {context['task_log'][dataset_name]['est_time_hi']})", flush=True)
 
-    time_end = time()
-    print(f"\nCompleted in {timedelta(seconds=time_end - time_start)} (estimated total time was {total_est_time_lo} - {total_est_time_hi})", flush=True)
+    total_time_end = time()
+    context['task_log']['_total']['time'] = str(timedelta(seconds=total_time_end - total_time_start))
+    print(f"\nCompleted {context['task_log']['_total']['query_count']} queries in {context['task_log']['_total']['time']} (estimated total time was {context['task_log']['_total']['est_time_lo']} - {context['task_log']['_total']['est_time_hi']})", flush=True)
+
+    runlog_outdir = os.path.join(
+        context['outdir'],
+        '_runlog',
+        context['now']['year'],
+        context['now']['month']
+    )
+    os.makedirs(runlog_outdir, exist_ok=True)
+    with open(os.path.join(runlog_outdir, f"{context['now']['ds']}.json"), 'w') as f:
+        f.write(json.dumps(context, indent=4, sort_keys=True))
