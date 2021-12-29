@@ -53,8 +53,7 @@ GITHUB_DATASETS = {
         "type": "repo",
         "stats": True,
         "args": {
-            # "language": GITHUB_FULL_LANGUAGES + GITHUB_PARTIAL_LANGUAGES,
-            "language": ["coq"],
+            "language": GITHUB_FULL_LANGUAGES + GITHUB_PARTIAL_LANGUAGES,
             "sort-by": ["stars"],
             "pushed": ["001_1week"],
         }
@@ -95,8 +94,7 @@ GITHUB_DATASETS = {
     "user-alltime-counts": {
         "type": "user",
         "args": {
-            # "language": GITHUB_FULL_LANGUAGES + GITHUB_PARTIAL_LANGUAGES + GITHUB_OTHER_LANGUAGES,
-            "language": ["coq"],
+            "language": GITHUB_FULL_LANGUAGES + GITHUB_PARTIAL_LANGUAGES + GITHUB_OTHER_LANGUAGES,
             "created": [
                 "alltime",
                 "004_1month",
