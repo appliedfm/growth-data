@@ -1,4 +1,6 @@
 from util import *
+from datetime import datetime, timedelta, timezone
+import dateutil
 import pandas as pd
 import json
 import sys
@@ -40,6 +42,26 @@ def repo_stats(context, task_outdir, repos_df):
         size_q75=('size', q75),
         size_q90=('size', q90),
 
+        days_since_create_min=('days_since_create', 'min'),
+        days_since_create_max=('days_since_create', 'max'),
+        days_since_create_avg=('days_since_create', 'mean'),
+        days_since_create_std=('days_since_create', 'std'),
+        days_since_create_q10=('days_since_create', q10),
+        days_since_create_q25=('days_since_create', q25),
+        days_since_create_q50=('days_since_create', q50),
+        days_since_create_q75=('days_since_create', q75),
+        days_since_create_q90=('days_since_create', q90),
+
+        days_since_push_min=('days_since_push', 'min'),
+        days_since_push_max=('days_since_push', 'max'),
+        days_since_push_avg=('days_since_push', 'mean'),
+        days_since_push_std=('days_since_push', 'std'),
+        days_since_push_q10=('days_since_push', q10),
+        days_since_push_q25=('days_since_push', q25),
+        days_since_push_q50=('days_since_push', q50),
+        days_since_push_q75=('days_since_push', q75),
+        days_since_push_q90=('days_since_push', q90),
+
         stargazers_count_min=('stargazers_count', 'min'),
         stargazers_count_max=('stargazers_count', 'max'),
         stargazers_count_sum=('stargazers_count', 'sum'),
@@ -75,7 +97,6 @@ def repo_stats(context, task_outdir, repos_df):
 
         topics_count_min=('topics_count', 'min'),
         topics_count_max=('topics_count', 'max'),
-        topics_count_sum=('topics_count', 'sum'),
         topics_count_avg=('topics_count', 'mean'),
         topics_count_std=('topics_count', 'std'),
         topics_count_q10=('topics_count', q10),
@@ -104,6 +125,8 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
         'full_name',
         'owner_type',
         'size',
+        'days_since_create',
+        'days_since_push',
         'stargazers_count',
         'forks_count',
         'open_issues_count',
@@ -121,6 +144,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
         'pushed_at',
         'topics',
         ))
+    topics_df = pd.DataFrame(columns=('ds', 'sortby', 'pushed', 'language', 'topic'))
     counts_df = pd.DataFrame(columns=('ds', 'sortby', 'pushed', 'language', 'repo_count', 'repo_data_count'))
     for query in queries:
         status, total, repos = gh.do_search(
@@ -144,6 +168,17 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
             ignore_index=True
         )
         for repo in repos:
+            for topic in repo["topics"]:
+                topics_df = topics_df.append(
+                    {
+                        'ds': context['now']['ds'],
+                        'sortby': query['args']['sort-by'],
+                        'pushed': query['args']['pushed'],
+                        'language': query['args']['language'],
+                        'topic': topic,
+                    },
+                    ignore_index=True
+                )
             repos_df = repos_df.append(
                 {
                     'ds': context['now']['ds'],
@@ -153,6 +188,8 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
                     'full_name': str(repo["full_name"]),
                     'owner_type': str(repo["owner"]["type"]) if repo["owner"] is not None else "",
                     'size': int(repo["size"]),
+                    'days_since_create': (datetime.strptime(context['now']['ds'], '%Y-%m-%d').replace(tzinfo=timezone.utc) + timedelta(days=1) - dateutil.parser.isoparse(str(repo["created_at"]))).days,
+                    'days_since_push': (datetime.strptime(context['now']['ds'], '%Y-%m-%d').replace(tzinfo=timezone.utc) + timedelta(days=1) - dateutil.parser.isoparse(str(repo["pushed_at"]))).days,
                     'stargazers_count': int(repo["stargazers_count"]),
                     'forks_count': int(repo["forks_count"]),
                     'open_issues_count': int(repo["open_issues_count"]),
@@ -172,14 +209,32 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
                 },
                 ignore_index=True
             )
-    if context['saveraw']:
-        write_df(context, task_outdir, 'repos', repos_df)
     write_df(context, task_outdir, 'repo_counts', counts_df)
     if args['stats']:
+        if context['saveraw']:
+            write_df(context, task_outdir, 'repos', repos_df)
+        if context['saveraw']:
+            write_df(context, task_outdir, 'topics', topics_df)
+
+        # Topic stats
+        grouped_topics_df = topics_df.groupby(['ds', 'sortby', 'pushed', 'language', 'topic'], as_index=False).agg(
+            repos=('language', 'count'),
+        ).sort_values(by=['ds', 'sortby', 'pushed', 'language', 'repos'], ascending=[True, True, True, True, False])
+        write_df(context, task_outdir, 'topics', grouped_topics_df)
+
+        # Top-line repo stats
         grouped_df = repo_stats(context, task_outdir, repos_df)
         write_df(context, task_outdir, 'repo_stats_overall', grouped_df)
         joined_df = pd.merge(repos_df, grouped_df, on=['ds', 'sortby', 'pushed', 'language'])
-        COLUMNS = ['size', 'stargazers_count', 'forks_count', 'open_issues_count', 'topics_count']
+        COLUMNS = [
+            'size',
+            'days_since_create',
+            'days_since_push',
+            'stargazers_count',
+            'forks_count',
+            'open_issues_count',
+            'topics_count'
+        ]
         QUANTS = [
             ('< q10', None, 'q10'),
             ('q10 - q25', 'q10', 'q25'),
