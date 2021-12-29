@@ -13,7 +13,7 @@ import sys
 def write_df(context, task_outdir, name, df):
     df.to_csv(os.path.join(task_outdir, f"{context['now']['ds']}-{name}.csv"), index=False)
     with open(os.path.join(task_outdir, f"{context['now']['ds']}-{name}.md"), 'w') as f:
-        f.write(tabulate(df, headers='keys', tablefmt='github'))
+        f.write(tabulate(df, headers='keys', showindex=False, tablefmt='github'))
         f.write("\n")
 
 
@@ -33,7 +33,7 @@ def repo_stats(context, task_outdir, repos_df):
     def q90(x):
         return x.quantile(0.9)
 
-    grouped_df = repos_df.groupby(['ds', 'sortby', 'language', 'pushed'], as_index=False).agg(
+    grouped_df = repos_df.groupby(['ds', 'sortby', 'pushed', 'language'], as_index=False).agg(
         repos=('full_name', 'count'),
 
         repos_with_license=('has_license', 'sum'),
@@ -110,12 +110,11 @@ def repo_query_string(context, query):
 
 def repo_task(context, gh, dataset_name, task_outdir, args, queries):
     print(f"repo_task({dataset_name}, {task_outdir}, {json.dumps(args)}, {len(queries)} queries)", flush=True)
-    counts_df = pd.DataFrame(columns=('ds', 'sortby', 'language', 'pushed', 'repo_count', 'repo_data_count'))
     repos_df = pd.DataFrame(dtype=float, columns=(
         'ds',
         'sortby',
-        'language',
         'pushed',
+        'language',
         'full_name',
         'owner_type',
         'size',
@@ -136,6 +135,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
         'pushed_at',
         'topics',
         ))
+    counts_df = pd.DataFrame(columns=('ds', 'sortby', 'pushed', 'language', 'repo_count', 'repo_data_count'))
     for query in queries:
         status, total, repos = gh.do_search(
             search_type="repositories",
@@ -150,8 +150,8 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
             {
                 'ds': context['now']['ds'],
                 'sortby': query['args']['sort-by'],
-                'language': query['args']['language'],
                 'pushed': query['args']['pushed'],
+                'language': query['args']['language'],
                 'repo_count': total,
                 'repo_data_count': len(repos),
             },
@@ -162,8 +162,8 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
                 {
                     'ds': context['now']['ds'],
                     'sortby': query['args']['sort-by'],
-                    'language': query['args']['language'],
                     'pushed': query['args']['pushed'],
+                    'language': query['args']['language'],
                     'full_name': str(repo["full_name"]),
                     'owner_type': str(repo["owner"]["type"]) if repo["owner"] is not None else "",
                     'size': int(repo["size"]),
@@ -191,26 +191,28 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
     write_df(context, task_outdir, 'repo_counts', counts_df)
     if args['stats']:
         grouped_df = repo_stats(context, task_outdir, repos_df)
-        write_df(context, task_outdir, 'repo_stats', grouped_df)
-        joined_df = pd.merge(repos_df, grouped_df, on=['ds', 'sortby', 'language', 'pushed'])
+        write_df(context, task_outdir, 'repo_stats_overall', grouped_df)
+        joined_df = pd.merge(repos_df, grouped_df, on=['ds', 'sortby', 'pushed', 'language'])
         COLUMNS = ['size', 'stargazers_count', 'forks_count', 'open_issues_count', 'topics_count']
         QUANTS = [
-            ('q10', None, 'q10'),
+            ('< q10', None, 'q10'),
             ('q10 - q25', 'q10', 'q25'),
             ('q25 - q50', 'q25', 'q50'),
             ('q50 - q75', 'q50', 'q75'),
             ('q75 - q90', 'q75', 'q90'),
-            ('q90', 'q90', None)
+            ('q90 <', 'q90', None)
         ]
         for column in COLUMNS:
-            quants = []
+            quant_dfs = []
             for q_name, q_lo, q_hi in QUANTS:
                 q_df = joined_df
                 q_df = q_df[q_df[f"{column}_{q_lo}"] <= q_df[column]] if q_lo is not None else q_df
                 q_df = q_df[q_df[column] < q_df[f"{column}_{q_hi}"]] if q_hi is not None else q_df
-                quants.append(repo_stats(context, task_outdir, q_df).assign(quantile=q_name))
-            quant_df = pd.concat(quants)
-            write_df(context, task_outdir, f"repo_stats_by_{column}_quantiles", quant_df)
+                quant_df = repo_stats(context, task_outdir, q_df)
+                quant_df.insert(4, 'quantile', q_name)
+                quant_dfs.append(quant_df)
+            quant_df = pd.concat(quant_dfs).sort_values(by=['ds', 'sortby', 'pushed', 'language', 'quantile'])
+            write_df(context, task_outdir, f"repo_stats_quantile_by_{column}", quant_df)
 
 
 def user_query_string(context, query):
@@ -223,7 +225,7 @@ def user_query_string(context, query):
 
 def user_task(context, gh, dataset_name, task_outdir, args, queries):
     print(f"user_task({dataset_name}, {task_outdir}, {json.dumps(args)}, {len(queries)} queries)", flush=True)
-    counts_df = pd.DataFrame(columns=('ds', 'language', 'created', 'user_count'))
+    counts_df = pd.DataFrame(columns=('ds', 'created', 'language', 'user_count'))
     for query in queries:
         status, total, _ = gh.do_search(
             search_type="users",
@@ -235,8 +237,8 @@ def user_task(context, gh, dataset_name, task_outdir, args, queries):
         counts_df = counts_df.append(
             {
                 'ds': context['now']['ds'],
-                'language': query['args']['language'],
                 'created': query['args']['created'],
+                'language': query['args']['language'],
                 'user_count': total,
             },
             ignore_index=True
@@ -260,11 +262,12 @@ def plan_tasks(dataset_name):
             for pushed in task['args']['pushed']:
                 for language in task['args']['language']:
                     task_plan["queries"].append({
-                        "est_time": GITHUB_SEARCH_DELAY * (10 if task_plan['args']['stats'] else 1),
+                        "est_time_lo": GITHUB_SEARCH_DELAY,
+                        "est_time_hi": GITHUB_SEARCH_DELAY * (10 if task_plan['args']['stats'] else 1),
                         "args": {
-                            "language": language,
                             "sort-by": sortby,
                             "pushed": pushed,
+                            "language": language,
                         },
                     })
         return task_plan
@@ -278,10 +281,11 @@ def plan_tasks(dataset_name):
             for language in task['args']['language']:
                 task_plan["queries"].append({
                     "fn": user_task,
-                    "est_time": GITHUB_SEARCH_DELAY,
+                    "est_time_lo": GITHUB_SEARCH_DELAY,
+                    "est_time_hi": GITHUB_SEARCH_DELAY,
                     "args": {
-                        "language": language,
                         "created": created,
+                        "language": language,
                     },
                 })
         return task_plan
@@ -325,20 +329,26 @@ if __name__=="__main__":
         tasks[dataset_name] = plan_tasks(dataset_name)
 
     print("Planning tasks ...", flush=True)
-    total_est_time = 0
+    total_est_time_lo = 0
+    total_est_time_hi = 0
     total_query_count = 0
     for dataset_name in tasks:
-        est_time = 0
+        est_time_lo = 0
+        est_time_hi = 0
         query_count = len(tasks[dataset_name]["queries"])
         for task in tasks[dataset_name]["queries"]:
-            est_time = est_time + task["est_time"]
-        total_est_time = total_est_time + est_time
+            est_time_lo = est_time_lo + task["est_time_lo"]
+            est_time_hi = est_time_hi + task["est_time_hi"]
+        total_est_time_lo = total_est_time_lo + est_time_lo
+        total_est_time_hi = total_est_time_hi + est_time_hi
         total_query_count = total_query_count + query_count
-        est_time = timedelta(seconds=est_time)
-        print(f"{dataset_name}: {query_count} queries planned; estimated time: {est_time}", flush=True)
+        est_time_lo = timedelta(seconds=est_time_lo)
+        est_time_hi = timedelta(seconds=est_time_hi)
+        print(f"{dataset_name}: {query_count} queries planned; estimated time: {est_time_lo} - {est_time_hi}", flush=True)
 
-    total_est_time = timedelta(seconds=total_est_time)
-    print(f"{len(tasks)} tasks ({total_query_count} queries) planned; estimated total time: {total_est_time}\n", flush=True)
+    total_est_time_lo = timedelta(seconds=total_est_time_lo)
+    total_est_time_hi = timedelta(seconds=total_est_time_hi)
+    print(f"{len(tasks)} tasks ({total_query_count} queries) planned; estimated total time: {total_est_time_lo} - {total_est_time_hi}\n", flush=True)
 
     if args.noexec:
         print("exiting (noexec)", flush=True)
@@ -362,4 +372,4 @@ if __name__=="__main__":
             )
 
     time_end = time()
-    print(f"\nCompleted in {timedelta(seconds=time_end - time_start)}", flush=True)
+    print(f"\nCompleted in {timedelta(seconds=time_end - time_start)} (estimated total time was {total_est_time_lo} - {total_est_time_hi})", flush=True)
