@@ -33,7 +33,7 @@ def repo_stats(context, task_outdir, repos_df):
     def q90(x):
         return x.quantile(0.9)
 
-    grouped_df = repos_df.groupby(['ds', 'language', 'pushed'], as_index=False).agg(
+    grouped_df = repos_df.groupby(['ds', 'sortby', 'language', 'pushed'], as_index=False).agg(
         repos=('full_name', 'count'),
 
         repos_with_license=('has_license', 'sum'),
@@ -110,9 +110,10 @@ def repo_query_string(context, query):
 
 def repo_task(context, gh, dataset_name, task_outdir, args, queries):
     print(f"repo_task({dataset_name}, {task_outdir}, {json.dumps(args)}, {len(queries)} queries)")
-    counts_df = pd.DataFrame(columns=('ds', 'language', 'pushed', 'repo_count', 'repo_data_count'))
+    counts_df = pd.DataFrame(columns=('ds', 'sortby', 'language', 'pushed', 'repo_count', 'repo_data_count'))
     repos_df = pd.DataFrame(dtype=float, columns=(
         'ds',
+        'sortby',
         'language',
         'pushed',
         'full_name',
@@ -148,6 +149,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
         counts_df = counts_df.append(
             {
                 'ds': context['now']['ds'],
+                'sortby': query['args']['sort-by'],
                 'language': query['args']['language'],
                 'pushed': query['args']['pushed'],
                 'repo_count': total,
@@ -159,6 +161,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
             repos_df = repos_df.append(
                 {
                     'ds': context['now']['ds'],
+                    'sortby': query['args']['sort-by'],
                     'language': query['args']['language'],
                     'pushed': query['args']['pushed'],
                     'full_name': str(repo["full_name"]),
@@ -189,7 +192,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
     if args['stats']:
         grouped_df = repo_stats(context, task_outdir, repos_df)
         write_df(context, task_outdir, 'repo_stats', grouped_df)
-        joined_df = pd.merge(repos_df, grouped_df, on=['ds', 'language', 'pushed'])
+        joined_df = pd.merge(repos_df, grouped_df, on=['ds', 'sortby', 'language', 'pushed'])
         COLUMNS = ['size', 'stargazers_count', 'forks_count', 'open_issues_count', 'topics_count']
         QUANTS = [
             ('q10', None, 'q10'),
@@ -253,9 +256,9 @@ def plan_tasks(dataset_name):
             },
             "queries": [],
         }
-        for language in task['args']['language']:
-            for sortby in task['args']["sort-by"]:
-                for pushed in task['args']['pushed']:
+        for sortby in task['args']["sort-by"]:
+            for pushed in task['args']['pushed']:
+                for language in task['args']['language']:
                     task_plan["queries"].append({
                         "est_time": GITHUB_SEARCH_DELAY * (10 if task_plan['args']['stats'] else 1),
                         "args": {
@@ -271,16 +274,16 @@ def plan_tasks(dataset_name):
             "args": {},
             "queries": []
         }
-        for language in task['args']['language']:
-                for created in task['args']["created"]:
-                    task_plan["queries"].append({
-                        "fn": user_task,
-                        "est_time": GITHUB_SEARCH_DELAY,
-                        "args": {
-                            "language": language,
-                            "created": created,
-                        },
-                    })
+        for created in task['args']["created"]:
+            for language in task['args']['language']:
+                task_plan["queries"].append({
+                    "fn": user_task,
+                    "est_time": GITHUB_SEARCH_DELAY,
+                    "args": {
+                        "language": language,
+                        "created": created,
+                    },
+                })
         return task_plan
     else:
         print(f"unknown task type: {task['type']}", file=sys.stderr)
