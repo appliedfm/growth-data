@@ -22,7 +22,7 @@ class GitHub:
             second_since_last = (ts - last).total_seconds()
             sleep_for = delay - second_since_last
             if sleep_for > 0:
-                print(f"  ... rate limit: sleeping for {sleep_for} seconds ...")
+                print(f"  ... rate limit: sleeping for {sleep_for} seconds ...", flush=True)
                 sleep(sleep_for)
 
         ts = datetime.now(tz=timezone.utc)
@@ -33,7 +33,7 @@ class GitHub:
         return ts
 
     def do_request(self, api_url, is_search=False):
-        print(f"  ... do_request(\"{api_url}\")")
+        print(f"  ... do_request(\"{api_url}\")", flush=True)
         ts = self.ratelimit(is_search)
         response = requests.get(api_url)        
         return response.status_code, response.json()
@@ -42,7 +42,7 @@ class GitHub:
         if not fetch_all:
             per_page = 1
 
-        print(f"{search_type}_search(q={q}, fetch_all={fetch_all}, sortby={sortby}, page={page}, per_page={per_page})")
+        print(f"{search_type}_search(q={q}, fetch_all={fetch_all}, sortby={sortby}, page={page}, per_page={per_page})", flush=True)
 
         api_url = f"https://api.github.com/search/{search_type}?q={urllib.parse.quote(q)}&page={page}&per_page={per_page}"
         if sortby is not None:
@@ -55,7 +55,7 @@ class GitHub:
 
         total_count = int(github_rest_data["total_count"])
         total_so_far = len(items) + len(github_rest_data["items"])
-        print(f"  ... success: {total_so_far} of {total_count}")
+        print(f"  ... success: {total_so_far} of {total_count}", flush=True)
 
         if fetch_all:
             items = items + github_rest_data["items"]
