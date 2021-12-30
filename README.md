@@ -15,12 +15,5 @@ $ pip install -r requirements.txt
 ## Fetch the data
 
 ```console
-$ python3 src/fetch_github.py
-```
-
-
-## Analyze the data
-
-```console
-$ python3 src/analyze.py
+$ python3 src/github/main.py -o data all
 ```
