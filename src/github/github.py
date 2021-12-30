@@ -18,8 +18,10 @@ class GitHub:
 
         last = self.last_search if is_search else self.last_query
 
+        SEARCH_DELAY = GITHUB_SEARCH_DELAY_AUTHENTICATED if self.token is not None else GITHUB_SEARCH_DELAY
+
         if last is not None:
-            delay = GITHUB_SEARCH_DELAY if is_search else GITHUB_QUERY_DELAY
+            delay = SEARCH_DELAY if is_search else GITHUB_QUERY_DELAY
             second_since_last = (ts - last).total_seconds()
             sleep_for = delay - second_since_last
             if sleep_for > 0:
