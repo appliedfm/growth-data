@@ -4,7 +4,7 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron:  '40 4 * * 3' # 4:40am on Wednesdays
-    - cron:  '40 4 * * 4' # 4:00am on Thursdays
+    - cron:  '40 4 * * 4' # 4:40am on Thursdays
   workflow_dispatch:
     inputs:
       dataset_name:
@@ -27,7 +27,7 @@ jobs:
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
           git fetch origin main
-          git merge -s recursive --theirs origin/main
+          git merge -s recursive -X theirs origin/main
       - name: Install the dependencies
         run: pip install -r requirements.txt
       - name: Get the data
