@@ -15,5 +15,5 @@ $ pip install -r requirements.txt
 ## Fetch the data
 
 ```console
-$ python3 src/github/main.py -o data all > log.txt
+$ python3 src/github/main.py -o data all
 ```
