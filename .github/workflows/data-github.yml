@@ -21,7 +21,7 @@ jobs:
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
           git fetch origin main
-          git merge origin/main
+          git merge --allow-unrelated-histories origin/main
       - name: Install the dependencies
         run: pip install -r requirements.txt
       - name: Get the data
