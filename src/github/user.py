@@ -20,7 +20,10 @@ def user_task(context, gh, dataset_name, task_outdir, args, queries):
             q=user_query_string(context, query),
         )
         if 200 != status:
-            print(f"  ... error: status={status}", file=sys.stderr, flush=True)
+            context['task_log'][dataset_name]['error'] = {
+                'msg': "status {status} received (expected 200)"
+            }
+            print(f"  ... error: {dataset_name} encountered status={status}", file=sys.stderr, flush=True)
             return
         counts_df = counts_df.append(
             {
