@@ -41,4 +41,4 @@ jobs:
           git push
       - name: Track the size
         run: |
-          du -h ${{ github.workspace }}/data
+          du -h data
