@@ -63,24 +63,27 @@ if __name__=="__main__":
     parser.add_argument("dataset_names", help="one or more datasets from the configuration file", nargs='+')
     parser.add_argument("-o", "--outdir", help="output directory", required=True)
     parser.add_argument("--noexec", help="print information about the plan but do not run the plan", action='store_true')
+    parser.add_argument("--savemd", help="save results as GitHub markdown (in addition to csv)", action='store_true')
     parser.add_argument("--saveraw", help="save all raw search results", action='store_true')
     parser.add_argument("--disable_ratelimit", help="disable ratelimiting", action='store_true')
     parser.set_defaults(noexec=False)
+    parser.set_defaults(savemd=False)
     parser.set_defaults(saveraw=False)
     parser.set_defaults(disable_ratelimit=False)
     args = parser.parse_args()
 
     ts = datetime.now(tz=timezone.utc)
     context = {
-        "now": {
-            "ts": str(ts),
-            "ds": ts.strftime("%Y-%m-%d"),
-            "month": ts.strftime("%m"),
-            "year": ts.strftime("%Y"),
+        'now': {
+            'ts': str(ts),
+            'ds': ts.strftime("%Y-%m-%d"),
+            'month': ts.strftime("%m"),
+            'year': ts.strftime("%Y"),
         },
-        "outdir": args.outdir,
-        "saveraw": args.saveraw,
-        "windows": {},
+        'outdir': args.outdir,
+        'savemd': args.savemd,
+        'saveraw': args.saveraw,
+        'windows': {},
     }
     for window in GITHUB_WINDOWS:
         context['windows'][window] = (ts - GITHUB_WINDOWS[window]).strftime("%Y-%m-%d") if GITHUB_WINDOWS[window] is not None else None
