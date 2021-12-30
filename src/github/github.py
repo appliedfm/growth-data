@@ -39,7 +39,11 @@ class GitHub:
     def do_request(self, api_url, is_search=False):
         print(f"  ... do_request(\"{api_url}\")", flush=True)
         ts = self.ratelimit(is_search)
-        headers = { 'Authorization': 'token ' + self.token } if self.token is not None else {}
+        headers = {
+            'User-Agent': 'request'
+        }
+        if self.token is not None:
+            headers['Authorization'] = 'token ' + self.token
         response = requests.get(api_url, headers=headers)
         return response.status_code, response.json()
 
