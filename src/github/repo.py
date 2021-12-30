@@ -22,7 +22,7 @@ def repo_stats(context, task_outdir, repos_df):
         return x.quantile(0.9)
 
     grouped_df = repos_df.groupby(['ds', 'sortby', 'pushed', 'language'], as_index=False).agg(
-        repos=('full_name', 'count'),
+        repo_count=('full_name', 'count'),
 
         repos_with_license=('has_license', 'sum'),
         repos_with_issues=('has_issues', 'sum'),
@@ -218,6 +218,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
                 },
                 ignore_index=True
             )
+    counts_df = counts_df.sort_values(by=['ds', 'pushed', 'repo_count'], ascending=[True, True, False])
     write_df(context, task_outdir, 'repo_counts', counts_df)
     if args['stats']:
         if context['saveraw']:
@@ -227,12 +228,13 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
 
         # Topic stats
         grouped_topics_df = topics_df.groupby(['ds', 'language', 'topic'], as_index=False).agg(
-            repos=('repo_full_name', 'count'),
-        ).sort_values(by=['ds', 'language', 'repos'], ascending=[True, True, False])
+            repo_count=('repo_full_name', 'count'),
+        ).sort_values(by=['ds', 'language', 'repo_count'], ascending=[True, True, False])
+        grouped_topics_df = grouped_topics_df[grouped_topics_df['repo_count'] > 1]
         write_df(context, task_outdir, 'topics', grouped_topics_df)
 
         # Top-line repo stats
-        grouped_df = repo_stats(context, task_outdir, repos_df)
+        grouped_df = repo_stats(context, task_outdir, repos_df).sort_values(by=['ds', 'sortby', 'pushed', 'language', 'repo_count'], ascending=[True, True, True, True, False])
         write_df(context, task_outdir, 'repo_stats_overall', grouped_df)
         joined_df = pd.merge(repos_df, grouped_df, on=['ds', 'sortby', 'pushed', 'language'])
         COLUMNS = [

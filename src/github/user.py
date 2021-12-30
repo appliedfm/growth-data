@@ -34,4 +34,5 @@ def user_task(context, gh, dataset_name, task_outdir, args, queries):
             },
             ignore_index=True
         )
+    counts_df = counts_df.sort_values(by=['ds', 'created', 'user_count'], ascending=[True, True, False])
     write_df(context, task_outdir, 'user_counts', counts_df)
