@@ -144,7 +144,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
         'pushed_at',
         'topics',
         ))
-    topics_df = pd.DataFrame(columns=('ds', 'sortby', 'pushed', 'language', 'topic'))
+    topics_df = pd.DataFrame(columns=('ds', 'language', 'topic'))
     counts_df = pd.DataFrame(columns=('ds', 'sortby', 'pushed', 'language', 'repo_count', 'repo_data_count'))
     for query in queries:
         status, total, repos = gh.do_search(
@@ -172,16 +172,20 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
         )
         for repo in repos:
             for topic in repo["topics"]:
-                topics_df = topics_df.append(
-                    {
-                        'ds': context['now']['ds'],
-                        'sortby': query['args']['sort-by'],
-                        'pushed': query['args']['pushed'],
-                        'language': query['args']['language'],
-                        'topic': topic,
-                    },
-                    ignore_index=True
+                has_topic = (
+                    (topics_df['ds'] == context['now']['ds']) &
+                    (topics_df['language'] == query['args']['language']) &
+                    (topics_df['topic'] == topic)
                 )
+                if not has_topic.any():
+                    topics_df = topics_df.append(
+                        {
+                            'ds': context['now']['ds'],
+                            'language': query['args']['language'],
+                            'topic': topic,
+                        },
+                        ignore_index=True
+                    )
             repos_df = repos_df.append(
                 {
                     'ds': context['now']['ds'],
