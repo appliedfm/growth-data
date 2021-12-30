@@ -3,7 +3,6 @@ name: data-github
 on:
   schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '40 4 * * 3' # 4:40am on Wednesdays
     - cron:  '40 4 * * 4' # 4:40am on Thursdays
   workflow_dispatch:
     inputs:
