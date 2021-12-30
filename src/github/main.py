@@ -157,7 +157,7 @@ if __name__=="__main__":
             )
             time_end = time()
             context['task_log'][dataset_name]['time'] = str(timedelta(seconds=time_end - time_start))
-            print(f"... completed {dataset_name} ({context['task_log'][dataset_name]['query_count']} queries) in {context['task_log'][dataset_name]['time']} (estimated total time was {context['task_log'][dataset_name]['est_time_lo']} - {context['task_log'][dataset_name]['est_time_hi']})", flush=True)
+            print(f"... completed {dataset_name} ({context['task_log'][dataset_name]['query_count']} queries) in {context['task_log'][dataset_name]['time']} (estimated total time was {context['task_log'][dataset_name]['est_time_lo']} - {context['task_log'][dataset_name]['est_time_hi']})\n", flush=True)
 
     total_time_end = time()
     context['task_log']['_total']['time'] = str(timedelta(seconds=total_time_end - total_time_start))
@@ -170,5 +170,5 @@ if __name__=="__main__":
         context['now']['month']
     )
     os.makedirs(runlog_outdir, exist_ok=True)
-    with open(os.path.join(runlog_outdir, f"{context['now']['ds']}.json"), 'w') as f:
+    with open(os.path.join(runlog_outdir, f"{context['now']['ds']}-github.json"), 'w') as f:
         f.write(json.dumps(context, indent=4, sort_keys=True))
