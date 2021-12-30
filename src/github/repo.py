@@ -222,7 +222,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
         # Topic stats
         grouped_topics_df = topics_df.groupby(['ds', 'language', 'topic'], as_index=False).agg(
             repos=('language', 'count'),
-        ).sort_values(by=['ds', 'language', 'repos'], ascending=[True, True, True, True, False])
+        ).sort_values(by=['ds', 'language', 'repos'], ascending=[True, True, False])
         write_df(context, task_outdir, 'topics', grouped_topics_df)
 
         # Top-line repo stats
