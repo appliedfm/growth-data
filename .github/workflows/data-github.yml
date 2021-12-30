@@ -15,10 +15,9 @@ on:
 jobs:
   latest-data:
     runs-on: ubuntu-latest
+    env:
+      DEFAULT_DATASET_NAME: 'all'
     steps:
-      - name: Set the variables
-        env:
-          DEFAULT_DATASET_NAME: 'all'
       - name: Check out repository
         uses: actions/checkout@v2
         with:
