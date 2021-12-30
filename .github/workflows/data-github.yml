@@ -30,7 +30,7 @@ jobs:
       - name: Install the dependencies
         run: pip install -r requirements.txt
       - name: Get the data
-        run: python3 src/github/main.py -o data -t ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.dataset_name || DEFAULT_DATASET_NAME }}
+        run: python3 src/github/main.py -o data -t ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.dataset_name || env.DEFAULT_DATASET_NAME }}
       - name: Commit the data
         run: |
           git config user.name intoverflow
