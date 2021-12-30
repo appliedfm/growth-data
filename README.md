@@ -4,15 +4,20 @@
 
 Tools and data for measuring the popularity & growth of various programming languages.
 
-Recent data can be seen in `RESULTS.md`.
 
-## Install the dependencies
+## Getting the data
+
+Data can be found in the [`data`](https://github.com/appliedfm/growth-data/tree/data/data) branch of this repo.
+
+## Tool usage
+
+### Install the dependencies
 
 ```console
 $ pip install -r requirements.txt
 ```
 
-## Fetch the data
+### Collect the data
 
 ```console
 $ python3 src/github/main.py -o data all
