@@ -62,6 +62,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset_names", help="one or more datasets from the configuration file", nargs='+')
     parser.add_argument("-o", "--outdir", help="output directory", required=True)
+    parser.add_argument("-t", "--token", help="GitHub token", required=False)
     parser.add_argument("--noexec", help="print information about the plan but do not run the plan", action='store_true')
     parser.add_argument("--savemd", help="save results as GitHub markdown (in addition to csv)", action='store_true')
     parser.add_argument("--saveraw", help="save all raw search results", action='store_true')
@@ -70,6 +71,7 @@ if __name__=="__main__":
     parser.set_defaults(savemd=False)
     parser.set_defaults(saveraw=False)
     parser.set_defaults(disable_ratelimit=False)
+    parser.set_defaults(token=None)
     args = parser.parse_args()
 
     ts = datetime.now(tz=timezone.utc)
@@ -136,7 +138,7 @@ if __name__=="__main__":
     if args.noexec:
         print("exiting (noexec)", flush=True)
     else:
-        gh = GitHub(disable_ratelimit=args.disable_ratelimit)
+        gh = GitHub(disable_ratelimit=args.disable_ratelimit, token=args.token)
         for dataset_name in tasks:
             print(f"... {dataset_name} ...", flush=True)
             time_start = time()

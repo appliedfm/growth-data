@@ -5,10 +5,11 @@ import requests
 import urllib.parse
 
 class GitHub:
-    def __init__(self, disable_ratelimit=False):
+    def __init__(self, disable_ratelimit=False, token=None):
         self.last_query = None
         self.last_search = None
         self.disable_ratelimit = disable_ratelimit
+        self.token=token
 
     def ratelimit(self, is_search):
         ts = datetime.now(tz=timezone.utc)
@@ -35,7 +36,8 @@ class GitHub:
     def do_request(self, api_url, is_search=False):
         print(f"  ... do_request(\"{api_url}\")", flush=True)
         ts = self.ratelimit(is_search)
-        response = requests.get(api_url)        
+        headers = { 'Authorization': 'token ' + self.token } if self.token is not None else {}
+        response = requests.get(api_url, headers=headers)
         return response.status_code, response.json()
 
     def do_search(self, search_type, q, fetch_all=False, sortby=None, page=1, per_page=100, items=[]):
