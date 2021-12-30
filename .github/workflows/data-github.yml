@@ -1,6 +1,10 @@
 name: data-github
 
 on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 4 * * 3' # 4:00am on Wednesdays
+    - cron:  '0 4 * * 4' # 4:00am on Thursdays
   workflow_dispatch:
     inputs:
       dataset_name:
@@ -12,6 +16,9 @@ jobs:
   latest-data:
     runs-on: ubuntu-latest
     steps:
+      - name: Set the variables
+        env:
+          DEFAULT_DATASET_NAME: 'all'
       - name: Check out repository
         uses: actions/checkout@v2
         with:
@@ -24,7 +31,7 @@ jobs:
       - name: Install the dependencies
         run: pip install -r requirements.txt
       - name: Get the data
-        run: python3 src/github/main.py -o data -t ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.dataset_name }}
+        run: python3 src/github/main.py -o data -t ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.dataset_name || DEFAULT_DATASET_NAME }}
       - name: Commit the data
         run: |
           git config user.name intoverflow
