@@ -9,6 +9,15 @@ Tools and data for measuring the popularity & growth of various programming lang
 
 Data can be found in the [`data`](https://github.com/appliedfm/growth-data/tree/data/data) branch of this repo.
 
+
+## Building the report
+
+```console
+$ make -C docs html
+$ xdg-open docs/build/html/index.html
+```
+
+
 ## Tool usage
 
 ### Install the dependencies
