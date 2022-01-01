@@ -1,0 +1,14 @@
+ds,sortby,pushed,language,repo_count,repo_data_count
+2022-01-01,stars,001_1week,go,1715,1000
+2022-01-01,stars,001_1week,rust,966,966
+2022-01-01,stars,001_1week,elixir,131,131
+2022-01-01,stars,001_1week,haskell,123,123
+2022-01-01,stars,001_1week,ocaml,33,33
+2022-01-01,stars,001_1week,erlang,24,24
+2022-01-01,stars,001_1week,ada,14,14
+2022-01-01,stars,001_1week,coq,7,7
+2022-01-01,stars,001_1week,idris,3,3
+2022-01-01,stars,001_1week,lean,3,3
+2022-01-01,stars,001_1week,tla,2,2
+2022-01-01,stars,001_1week,agda,1,1
+2022-01-01,stars,001_1week,isabelle,1,1
