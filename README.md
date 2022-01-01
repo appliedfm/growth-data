@@ -10,6 +10,13 @@ Tools and data for measuring the popularity & growth of various programming lang
 Data can be found in the [`data`](https://github.com/appliedfm/growth-data/tree/data/data) branch of this repo.
 
 
+## Rendering the plots
+
+```console
+$ python3 src/plot.py
+```
+
+
 ## Building the report
 
 ```console
