@@ -63,7 +63,7 @@ class GitHub:
 
         if 200 != github_rest_status:
             print(f"  ... error: status={github_rest_status}", file=sys.stderr, flush=True)
-            print(f"      headers: {json.dumps(github_rest_response.headers)}", file=sys.stderr, flush=True)
+            print(f"      headers: {github_rest_response.headers}", file=sys.stderr, flush=True)
             print(f"      response: {json.dumps(github_rest_data)}", file=sys.stderr, flush=True)
             if 403 == github_rest_status and retries > 0:
                 sleep_for = 120
