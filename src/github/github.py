@@ -59,9 +59,12 @@ class GitHub:
             api_url = api_url + f"&sort={sortby}"
 
         github_rest_status, github_rest_response = self.do_request(api_url, is_search=True)
+        github_rest_data = github_rest_response.json()
 
         if 200 != github_rest_status:
-            print(f"  ... error: status={github_rest_status}. response: {json.dumps(github_rest_response)}", file=sys.stderr, flush=True)
+            print(f"  ... error: status={github_rest_status}", file=sys.stderr, flush=True)
+            print(f"      headers: {json.dumps(github_rest_response.headers)}", file=sys.stderr, flush=True)
+            print(f"      response: {json.dumps(github_rest_data)}", file=sys.stderr, flush=True)
             if 403 == github_rest_status and retries > 0:
                 sleep_for = 120
                 print(f"  ... sleeping for {sleep_for} seconds, then retrying ... ", file=sys.stderr, flush=True)
@@ -77,8 +80,6 @@ class GitHub:
                     retries = retries - 1
                 )
             return github_rest_status, 0, items
-
-        github_rest_data = github_rest_response.json()
 
         total_count = int(github_rest_data["total_count"])
         total_so_far = len(items) + len(github_rest_data["items"])
