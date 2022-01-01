@@ -60,7 +60,7 @@ class GitHub:
         github_rest_status, github_rest_data = self.do_request(api_url, is_search=True)
 
         if 200 != github_rest_status:
-            print(f"  ... error: status={status}. response: {json.dumps(github_rest_data)}", file=sys.stderr, flush=True)
+            print(f"  ... error: status={github_rest_status}. response: {json.dumps(github_rest_data)}", file=sys.stderr, flush=True)
             return github_rest_status, 0, items
 
         total_count = int(github_rest_data["total_count"])
