@@ -46,9 +46,9 @@ class GitHub:
         if self.token is not None:
             headers['Authorization'] = 'token ' + self.token
         response = requests.get(api_url, headers=headers)
-        return response.status_code, response.json()
+        return response.status_code, response
 
-    def do_search(self, search_type, q, fetch_all=False, sortby=None, page=1, per_page=100, items=[]):
+    def do_search(self, search_type, q, fetch_all=False, sortby=None, page=1, per_page=100, items=[], retries=2):
         if not fetch_all:
             per_page = 1
 
@@ -58,11 +58,27 @@ class GitHub:
         if sortby is not None:
             api_url = api_url + f"&sort={sortby}"
 
-        github_rest_status, github_rest_data = self.do_request(api_url, is_search=True)
+        github_rest_status, github_rest_response = self.do_request(api_url, is_search=True)
 
         if 200 != github_rest_status:
-            print(f"  ... error: status={github_rest_status}. response: {json.dumps(github_rest_data)}", file=sys.stderr, flush=True)
+            print(f"  ... error: status={github_rest_status}. response: {json.dumps(github_rest_response)}", file=sys.stderr, flush=True)
+            if 403 == github_rest_status and retries > 0:
+                sleep_for = 120
+                print(f"  ... sleeping for {sleep_for} seconds, then retrying ... ", file=sys.stderr, flush=True)
+                sleep(sleep_for)
+                return self.do_search(
+                    search_type,
+                    q,
+                    fetch_all = fetch_all,
+                    sortby = sortby,
+                    page = page,
+                    per_page = per_page,
+                    items = items,
+                    retries = retries - 1
+                )
             return github_rest_status, 0, items
+
+        github_rest_data = github_rest_response.json()
 
         total_count = int(github_rest_data["total_count"])
         total_so_far = len(items) + len(github_rest_data["items"])
@@ -81,6 +97,7 @@ class GitHub:
                     page = page + 1,
                     per_page = per_page,
                     items = items,
+                    retries = 2,
                 )
         
         return github_rest_status, total_count, items
