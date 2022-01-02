@@ -1,2 +1,5 @@
+*.bak
+*ipynb*
 __pycache__
 docs/build
+docs/source/_static/plots

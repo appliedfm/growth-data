@@ -6,7 +6,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Growth Data'
+project = 'FM Growth'
 copyright = '2021, applied.fm'
 author = 'applied.fm'
 html_favicon = 'favicon.ico'
@@ -34,6 +34,12 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = 'alabaster'
+
+html_theme_options = {
+    'page_width': '80%',
+}
+
+html_style = 'css/override.css'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
