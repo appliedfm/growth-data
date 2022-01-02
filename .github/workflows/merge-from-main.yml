@@ -28,6 +28,4 @@ jobs:
         run: |
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
-          git add .
-          git commit -m "merge from main"
           git push
