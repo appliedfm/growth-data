@@ -17,6 +17,8 @@ Published by [applied.fm](https://applied.fm). Hosted by [readthedocs.org](https
 2. Data is added to the [`data` branch](https://github.com/appliedfm/growth-data/tree/data).
 3. Docs are rendered in the [`docs` branch](https://github.com/appliedfm/growth-data/tree/docs).
 
+This flow has the benefit of automatically tracking data lineage: for any given datum, it is easy to determine which version of the tool generated it. It also ensures that each data-fetch operation uses the latest version of the tool.
+
 [Check the network](https://github.com/appliedfm/growth-data/network) to see the current relationship between these branches.
 
 ## Getting the data
@@ -46,6 +48,8 @@ $ xdg-open docs/build/html/index.html
 
 #
 
+[![pandas](https://img.shields.io/badge/-pandas-firebrick)](https://pandas.pydata.org)
+[![plotly](https://img.shields.io/badge/-plotly-mediumblue)](https://plotly.com)
 [![Sphinx](https://img.shields.io/badge/-Sphinx-navy)](https://www.sphinx-doc.org)
 [![readthedocs](https://img.shields.io/badge/-readthedocs-slateblue)](https://readthedocs.org)
 
