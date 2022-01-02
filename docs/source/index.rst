@@ -27,7 +27,7 @@ GitHub
    :maxdepth: 3
 
    github_overview
-   github_repos_overview
+   github_repos_count
    github_repos_size
    github_repos_stars
    github_repos_forks
