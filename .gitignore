@@ -2,4 +2,4 @@
 *ipynb*
 __pycache__
 docs/build
-docs/source/plots
+docs/source/_static/plots

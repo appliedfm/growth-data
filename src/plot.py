@@ -83,7 +83,7 @@ if __name__=="__main__":
     parser.add_argument("-i", "--input", help="Path to corpus")
     parser.add_argument("-o", "--outdir", help="Output directory")
     parser.set_defaults(input='data')
-    parser.set_defaults(output='docs/source/plots')
+    parser.set_defaults(output='docs/source/_static/plots')
     args = parser.parse_args()
 
     M = Corpus(args.input)

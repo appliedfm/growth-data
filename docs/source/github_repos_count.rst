@@ -5,67 +5,67 @@ Overall counts
 --------------
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repo_count-.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repo_count-.html
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repo_count--logscale.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repo_count--logscale.html
 
 
 With license
 ------------
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_license-.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_license-.html
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_license--logscale.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_license--logscale.html
 
 
 With issues
 -----------
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_issues-.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_issues-.html
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_issues--logscale.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_issues--logscale.html
 
 
 With downloads
 --------------
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_downloads-.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_downloads-.html
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_downloads--logscale.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_downloads--logscale.html
 
 
 With wiki
 ---------
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_wiki-.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_wiki-.html
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_wiki--logscale.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_wiki--logscale.html
 
 
 With projects
 -------------
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_projects-.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_projects-.html
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_projects--logscale.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_projects--logscale.html
 
 
 With pages
 ----------
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_pages-.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_pages-.html
 
 .. raw:: html
-   :file: plots/repo-alltime-stats/repo_stats_overall/repos_with_pages--logscale.html
+   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_pages--logscale.html
