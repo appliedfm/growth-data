@@ -9,7 +9,7 @@ on:
         required: false
 
 jobs:
-  do-merge:
+  do-pull:
     runs-on: ubuntu-latest
     steps:
       - name: Log the notes
