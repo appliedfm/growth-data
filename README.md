@@ -43,3 +43,10 @@ $ python3 src/plot.py
 $ make -C docs html
 $ xdg-open docs/build/html/index.html
 ```
+
+#
+
+[![Sphinx](https://img.shields.io/badge/-Sphinx-navy)](https://www.sphinx-doc.org)
+[![readthedocs](https://img.shields.io/badge/-readthedocs-slateblue)](https://readthedocs.org)
+
+[![applied.fm](https://img.shields.io/badge/-applied.fm-orchid)](https://applied.fm)
