@@ -1,0 +1,64 @@
+name: pull-docs-from-main
+
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: 'Anything you want to say'
+        default: 'anything at all'
+        required: false
+
+jobs:
+  update-docs-in-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log the notes
+        run: echo ${{ github.event.inputs.notes }}
+      - name: Check out repository
+        uses: actions/checkout@v2
+        with:
+          ref: data
+      - name: Delete the docs
+        run: |
+          git rm -r docs || true
+      - name: Merge from main
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git fetch origin main
+          git checkout origin/main -- docs
+          git merge -s recursive -X theirs --allow-unrelated-histories origin/main
+      - name: Push
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git add docs
+          git commit -m "pull-docs-from-main" || true
+          git push
+  update-docs-in-docs:
+    needs: update-docs-in-data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log the notes
+        run: echo ${{ github.event.inputs.notes }}
+      - name: Check out repository
+        uses: actions/checkout@v2
+        with:
+          ref: docs
+      - name: Fast forward from data
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git pull --ff-only origin data
+      - name: Install the dependencies
+        run: pip install -r requirements.txt
+      - name: Render the plots
+        run: python3 src/plot.py
+      - name: Commit and push
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git add .
+          git add --force docs/source/_static/plots
+          git commit -m "pull-docs-from-main" || true
+          git push
