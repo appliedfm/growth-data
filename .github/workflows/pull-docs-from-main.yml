@@ -1,4 +1,4 @@
-name: merge-from-main
+name: pull-docs-from-main
 
 on:
   workflow_dispatch:
