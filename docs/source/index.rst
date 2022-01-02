@@ -17,6 +17,14 @@ Most of the pages in this report feature charts rendered by `plotly <https://plo
 We also recommend viewing on a wide-screen display if possible.
 
 
+Getting the data
+----------------
+
+* Our data is available in our `GitHub repository <https://github.com/appliedfm/growth-data>`_.
+
+* You can also `browse our full collection of plots <_static/plots/index.html>`_.
+
+
 GitHub
 ------
 

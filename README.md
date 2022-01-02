@@ -1,9 +1,15 @@
 # growth-data
 
-**This tool is under development.**
+![Website](https://img.shields.io/website?url=https%3A%2F%2Fgrowth.applied.fm)
+![Documentation Status](https://readthedocs.org/projects/fm-growth/badge/?version=latest)
+
+![GitHub](https://img.shields.io/github/license/appliedfm/growth-data)
 
 Tools and data for measuring the popularity & growth of various programming languages.
 
+The latest report can be viewed at [https://growth.applied.fm](https://growth.applied.fm).
+
+Published by [applied.fm](https://applied.fm). Hosted by [readthedocs.org](https://readthedocs.org/projects/fm-growth/)
 
 ## Repo organization & flow
 
@@ -37,3 +43,10 @@ $ python3 src/plot.py
 $ make -C docs html
 $ xdg-open docs/build/html/index.html
 ```
+
+#
+
+[![Sphinx](https://img.shields.io/badge/-Sphinx-navy)](https://www.sphinx-doc.org)
+[![readthedocs](https://img.shields.io/badge/-readthedocs-slateblue)](https://readthedocs.org)
+
+[![applied.fm](https://img.shields.io/badge/-applied.fm-orchid)](https://applied.fm)
