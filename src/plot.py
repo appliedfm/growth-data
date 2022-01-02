@@ -9,18 +9,19 @@ class Plot:
         self.outdir = outdir
         self.corpus = corpus
 
-    def repo_stats_metric(self, dataset, table, metric, agg, logscale=False, export=False):
+    def repo_stats_metric(self, dataset, table, metric, aggs, logscale=False, export=False):
         dfs = self.corpus.read_dfs()
         df = dfs[dataset][table].drop(['sortby'], axis=1)
-        title = f"{agg} of {metric}"
+        title = f"{', '.join(aggs)} of {metric}" if len(aggs) > 0 else metric
         if logscale:
             title = title + " (log scale)"
         fig = px.line(
             df,
             x='ds',
             y=[
-                f"{metric}_{agg}",
-            ],
+                f"{metric}_{agg}"
+                for agg in aggs
+            ] if len(aggs) > 0 else [metric],
             log_y=logscale,
             facet_col='pushed',
             color='language',
@@ -29,7 +30,6 @@ class Plot:
             labels={
                 'ds': 'Date',
                 'value': metric,
-                f"{metric}_{agg}": agg,
             },
             title = title,
         )
@@ -40,7 +40,7 @@ class Plot:
                 table,
                 )
             os.makedirs(tablepath, exist_ok=True)
-            outpath = os.path.join(tablepath, f"{metric}-{agg}{'-logscale' if logscale else ''}.html")
+            outpath = os.path.join(tablepath, f"{metric}-{'_'.join(aggs)}{'-logscale' if logscale else ''}.html")
             fig.write_html(outpath)
         return fig
 
@@ -56,14 +56,29 @@ if __name__=="__main__":
     M = Corpus(args.input)
     P = Plot(args.output, M)
 
+    dataset='repo-alltime-stats'
+    table='repo_stats_overall'
+    for metric in ['repo_count', 'repos_with_license', 'repos_with_issues', 'repos_with_downloads', 'repos_with_wiki', 'repos_with_projects', 'repos_with_pages']:
+        for logscale in [False, True]:
+            print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
+            fig = P.repo_stats_metric(
+                dataset,
+                table,
+                metric,
+                [],
+                logscale=logscale,
+                export=True
+            )
+
     for metric in ['stargazers_count', 'forks_count', 'size', 'open_issues_count']:
         for logscale in [False, True]:
-            for agg in ['sum', 'avg', 'q50', 'q90', 'max']:
+            for aggs in [['sum'], ['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
+                print(f"rendering {dataset} {table} {metric} {aggs} (logscale={logscale})")
                 fig = P.repo_stats_metric(
-                    'repo-alltime-stats',
-                    'repo_stats_overall',
+                    dataset,
+                    table,
                     metric,
-                    agg,
+                    aggs,
                     logscale=logscale,
                     export=True
                 )
