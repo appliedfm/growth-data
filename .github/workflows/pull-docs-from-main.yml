@@ -34,8 +34,6 @@ jobs:
           git add docs
           git commit -m "refresh docs" || true
           git push
-
-jobs:
   update-docs-in-docs:
     runs-on: ubuntu-latest
     steps:
