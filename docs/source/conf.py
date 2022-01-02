@@ -6,7 +6,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Growth Data'
+project = 'FM Growth'
 copyright = '2021, applied.fm'
 author = 'applied.fm'
 html_favicon = 'favicon.ico'

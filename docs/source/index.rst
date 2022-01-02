@@ -1,5 +1,5 @@
-Growth Data
-===========
+FM Growth Data
+==============
 
 Information about the growth, activity, and maturity of formal methods technologies in the open source economy.
 
