@@ -1,9 +1,15 @@
 # growth-data
 
-**This tool is under development.**
+![Website](https://img.shields.io/website?url=https%3A%2F%2Fgrowth.applied.fm)
+![Documentation Status](https://readthedocs.org/projects/fm-growth/badge/?version=latest)
+
+![GitHub](https://img.shields.io/github/license/appliedfm/growth-data)
 
 Tools and data for measuring the popularity & growth of various programming languages.
 
+The latest report can be viewed at [https://growth.applied.fm](https://growth.applied.fm).
+
+Published by [applied.fm](https://applied.fm). Hosted by [readthedocs.org](https://readthedocs.org/projects/fm-growth/)
 
 ## Repo organization & flow
 
