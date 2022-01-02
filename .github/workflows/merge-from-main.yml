@@ -1,0 +1,31 @@
+name: merge-from-main
+
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: 'Anything you want to say'
+        default: 'anything at all'
+        required: false
+
+jobs:
+  latest-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+        with:
+          ref: data
+      - name: Merge from main
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git fetch origin main
+          git merge -s recursive -X theirs --allow-unrelated-histories origin/main
+      - name: Push
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git add data
+          git commit -m "$(date +'%Y-%m-%d') ${{ github.event.inputs.dataset_name }}"
+          git push
