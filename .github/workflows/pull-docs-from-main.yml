@@ -57,6 +57,7 @@ jobs:
         run: |
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
+          git fetch origin data
           git merge -s recursive -X theirs --allow-unrelated-histories origin/data
       - name: Install the dependencies
         run: pip install -r requirements.txt
