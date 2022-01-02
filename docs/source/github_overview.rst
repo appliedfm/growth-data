@@ -29,16 +29,14 @@ These counts are gathered directly from GitHub. (In particular, they are not imp
    :file: _static/plots/repo-alltime-counts/repo_counts/repo_count.html
 
 
-Users by language & experience
-------------------------------
+Users by language & account age
+-------------------------------
 
 These counts are gathered directly from GitHub. (In particular, they are not impacted by the "1,000 results limit" described above.)
 
-* "Created" refers to the time since the user account was created. We measure it in weeks. For example, ``created=013_3month`` refers to users who created their account sometime in the last 13 weeks (which is approximately 3 months). The only exception is ``created=alltime``, which considers *all* users regardless of when their account was created.
+* "Created" refers to the time since the user account was created: in other words, the account's "age." We measure it in weeks. For example, ``created=013_3month`` refers to users who created their account sometime in the last 13 weeks (which is approximately 3 months). The only exception is ``created=alltime``, which considers *all* users regardless of when their account was created.
 
-* We interpret "created" as a proxy for "years of experience on GitHub," which we further interpret as a proxy for "years of engineering experience."
-
-* These charts shed light on which languages are most popular among different generations of GitHub users.
+* These charts shed light on which languages are most popular among different "generations" of GitHub users.
 
 * Below, we show two charts: they contain the same data, but one is in *logarithmic scale* while the other is in *linear scale*.
 
