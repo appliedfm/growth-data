@@ -1,6 +1,9 @@
 name: pull-docs-from-main
 
 on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '40 4 * * 5' # 4:40am on Fridays
   workflow_dispatch:
     inputs:
       notes:
@@ -18,16 +21,16 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: data
-      - name: Delete the docs
-        run: |
-          git rm -r docs || true
       - name: Merge from main
         run: |
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
           git fetch origin main
-          git checkout origin/main -- docs
           git merge -s recursive -X theirs --allow-unrelated-histories origin/main
+      - name: Delete and restore the docs
+        run: |
+          git rm -r docs || true
+          git checkout origin/main -- docs
       - name: Push
         run: |
           git config user.name intoverflow
@@ -45,11 +48,16 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: docs
-      - name: Fast forward from data
+      - name: Merge from data
         run: |
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
-          git pull --ff-only origin data
+          git fetch origin data
+          git merge -s recursive -X theirs --allow-unrelated-histories origin/data
+      - name: Delete and restore the docs
+        run: |
+          git rm -r docs || true
+          git checkout origin/data -- docs
       - name: Install the dependencies
         run: pip install -r requirements.txt
       - name: Render the plots

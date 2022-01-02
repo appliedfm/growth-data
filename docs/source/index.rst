@@ -3,7 +3,7 @@ FM Growth Data
 
 Information about the growth, activity, and maturity of formal methods technologies in the open source economy.
 
-Published by `applied.fm <https://applied.fm>`_.
+Published by `applied.fm <https://applied.fm>`_. `Visit us on GitHub <https://github.com/appliedfm/growth-data>`_.
 
 How to use this report
 ----------------------
