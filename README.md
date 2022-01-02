@@ -5,9 +5,17 @@
 Tools and data for measuring the popularity & growth of various programming languages.
 
 
+## Repo organization & flow
+
+1. Code & doc changes are made to the [`main` branch](https://github.com/appliedfm/growth-data).
+2. Data is added to the [`data` branch](https://github.com/appliedfm/growth-data/tree/data).
+3. Docs are rendered in the [`docs` branch](https://github.com/appliedfm/growth-data/tree/docs).
+
+[Check the network](https://github.com/appliedfm/growth-data/network) to see the current relationship between these branches.
+
 ## Getting the data
 
-Data can be found in the [`data`](https://github.com/appliedfm/growth-data/tree/data/data) branch of this repo. [Check the network](https://github.com/appliedfm/growth-data/network) to see the current relationship between `main` and `data`.
+Data can be found in the [`data` directory in the `data` branch](https://github.com/appliedfm/growth-data/tree/data/data).
 
 Alternatively, you can fetch new data by running
 
