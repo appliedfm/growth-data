@@ -7,7 +7,7 @@ Tools and data for measuring the popularity & growth of various programming lang
 
 ## Getting the data
 
-Data can be found in the [`data`](https://github.com/appliedfm/growth-data/tree/data/data) branch of this repo.
+Data can be found in the [`data`](https://github.com/appliedfm/growth-data/tree/data/data) branch of this repo. [Check the network](https://github.com/appliedfm/growth-data/network) to see the current relationship between `main` and `data`.
 
 Alternatively, you can fetch new data by running
 
