@@ -9,7 +9,7 @@ on:
         required: false
 
 jobs:
-  do-pull:
+  update-docs-in-data:
     runs-on: ubuntu-latest
     steps:
       - name: Log the notes
@@ -32,5 +32,32 @@ jobs:
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
           git add docs
+          git commit -m "refresh docs" || true
+          git push
+
+jobs:
+  update-docs-in-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log the notes
+        run: echo ${{ github.event.inputs.notes }}
+      - name: Check out repository
+        uses: actions/checkout@v2
+        with:
+          ref: docs
+      - name: Fast forward from data
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git pull --ff-only origin data
+      - name: Install the dependencies
+        run: pip install -r requirements.txt
+      - name: Render the plots
+        run: python3 src/plot.py
+      - name: Commit and push
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git add .
           git commit -m "refresh docs" || true
           git push
