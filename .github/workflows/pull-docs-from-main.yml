@@ -21,16 +21,16 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: data
-      - name: Delete the docs
-        run: |
-          git rm -r docs || true
       - name: Merge from main
         run: |
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
           git fetch origin main
-          git checkout origin/main -- docs
           git merge -s recursive -X theirs --allow-unrelated-histories origin/main
+      - name: Delete and restore the docs
+        run: |
+          git rm -r docs || true
+          git checkout origin/main -- docs
       - name: Push
         run: |
           git config user.name intoverflow
