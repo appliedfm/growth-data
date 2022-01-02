@@ -9,6 +9,20 @@ class Plot:
         self.outdir = outdir
         self.corpus = corpus
 
+    def export(self, dataset, table, fname, fig):
+        tablepath = os.path.join(
+            self.outdir,
+            dataset,
+            table,
+            )
+        os.makedirs(tablepath, exist_ok=True)
+        outpath = os.path.join(tablepath, f"{fname}.html")
+        fig.write_html(
+            outpath,
+            include_plotlyjs='cdn',
+            full_html=False,
+        )
+
     def plot_counts(self, dataset, table, metric, facet, logscale=False, export=False):
         dfs = self.corpus.read_dfs()
         df = dfs[dataset][table]
@@ -31,14 +45,7 @@ class Plot:
             title = title,
         )
         if export:
-            tablepath = os.path.join(
-                self.outdir,
-                dataset,
-                table,
-                )
-            os.makedirs(tablepath, exist_ok=True)
-            outpath = os.path.join(tablepath, f"{metric}{'-logscale' if logscale else ''}.html")
-            fig.write_html(outpath)
+            self.export(dataset, table, f"{metric}{'-logscale' if logscale else ''}", fig)
         return fig
 
     def repo_stats_metric(self, dataset, table, metric, aggs, logscale=False, export=False):
@@ -67,14 +74,7 @@ class Plot:
             title = title,
         )
         if export:
-            tablepath = os.path.join(
-                self.outdir,
-                dataset,
-                table,
-                )
-            os.makedirs(tablepath, exist_ok=True)
-            outpath = os.path.join(tablepath, f"{metric}-{'_'.join(aggs)}{'-logscale' if logscale else ''}.html")
-            fig.write_html(outpath)
+            self.export(dataset, table, f"{metric}-{'_'.join(aggs)}{'-logscale' if logscale else ''}", fig)
         return fig
 
 
