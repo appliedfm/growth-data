@@ -30,7 +30,6 @@ GitHub
    github_repos_stars
    github_repos_forks
    github_repos_issues
-   github_topics
 
 
 About
