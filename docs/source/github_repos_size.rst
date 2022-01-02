@@ -1,5 +1,5 @@
-Repo Size
-=========
+Size
+====
 
 
 Total

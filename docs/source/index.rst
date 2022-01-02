@@ -24,10 +24,11 @@ GitHub
 ------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    github_overview
    github_repos_count
+   github_repos_create
    github_repos_size
    github_repos_stars
    github_repos_forks
@@ -40,6 +41,6 @@ About
 -----
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
    about_faq

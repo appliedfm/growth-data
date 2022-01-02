@@ -70,6 +70,19 @@ if __name__=="__main__":
                 export=True
             )
 
+    for metric in ['days_since_create']:
+        for logscale in [False, True]:
+            for aggs in [['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
+                print(f"rendering {dataset} {table} {metric} {aggs} (logscale={logscale})")
+                fig = P.repo_stats_metric(
+                    dataset,
+                    table,
+                    metric,
+                    aggs,
+                    logscale=logscale,
+                    export=True
+                )
+
     for metric in ['stargazers_count', 'forks_count', 'size', 'open_issues_count']:
         for logscale in [False, True]:
             for aggs in [['sum'], ['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
