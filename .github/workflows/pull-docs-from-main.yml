@@ -20,7 +20,7 @@ jobs:
           ref: data
       - name: Delete the docs
         run: |
-          git rm -r docs
+          git rm -r docs || true
       - name: Merge from main
         run: |
           git config user.name intoverflow
