@@ -53,6 +53,7 @@ jobs:
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
           git pull --rebase -s recursive -X theirs origin data
+          git pull origin docs
       - name: Install the dependencies
         run: pip install -r requirements.txt
       - name: Render the plots
