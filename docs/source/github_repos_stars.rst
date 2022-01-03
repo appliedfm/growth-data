@@ -1,5 +1,5 @@
-Stars
-=====
+Repo stars
+==========
 
 Total
 -----

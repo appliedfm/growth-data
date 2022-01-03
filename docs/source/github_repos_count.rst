@@ -1,8 +1,8 @@
-Repo counts
-===========
+Repo count
+==========
 
-Overall counts
---------------
+Overall count
+-------------
 
 .. raw:: html
 

@@ -1,4 +1,4 @@
-Open issues
+Repo issues
 ===========
 
 Total
