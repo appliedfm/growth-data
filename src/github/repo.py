@@ -5,7 +5,7 @@ import pandas as pd
 import json
 import sys
 
-def repo_stats(context, task_outdir, repos_df):
+def repo_stats(context, task_outdir, repos_df, groupby):
     def q10(x):
         return x.quantile(0.1)
 
@@ -21,7 +21,7 @@ def repo_stats(context, task_outdir, repos_df):
     def q90(x):
         return x.quantile(0.9)
 
-    grouped_df = repos_df.groupby(['ds', 'sortby', 'pushed', 'language'], as_index=False).agg(
+    grouped_df = repos_df.groupby(groupby, as_index=False).agg(
         repo_count=('full_name', 'count'),
 
         repos_with_license=('has_license', 'sum'),
@@ -144,7 +144,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
         'pushed_at',
         'topics',
         ))
-    topics_df = pd.DataFrame(columns=('ds', 'language', 'topic', 'repo_full_name'))
+    topics_df = pd.DataFrame(columns=('ds', 'language', 'license_key', 'topic', 'repo_full_name'))
     counts_df = pd.DataFrame(columns=('ds', 'sortby', 'pushed', 'language', 'repo_count', 'repo_data_count'))
     for query in queries:
         status, total, repos = gh.do_search(
@@ -175,6 +175,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
                 has_topic = (
                     (topics_df['ds'] == context['now']['ds']) &
                     (topics_df['language'] == query['args']['language']) &
+                    (topics_df['license_key'] == str(repo["license"]["key"]) if repo["license"] is not None else "") &
                     (topics_df['topic'] == topic) &
                     (topics_df['repo_full_name'] == str(repo["full_name"]))
                 )
@@ -183,11 +184,14 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
                         {
                             'ds': context['now']['ds'],
                             'language': query['args']['language'],
+                            'license_key': str(repo["license"]["key"]) if repo["license"] is not None else "",
                             'topic': topic,
                             'repo_full_name': str(repo["full_name"]),
                         },
                         ignore_index=True
                     )
+            repos_df_standard_groupby = ['ds', 'sortby', 'pushed', 'language']
+            repos_df_license_groupby = repos_df_standard_groupby + ['license_key']
             repos_df = repos_df.append(
                 {
                     'ds': context['now']['ds'],
@@ -227,16 +231,38 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
             write_df(context, task_outdir, 'topics', topics_df)
 
         # Topic stats
-        grouped_topics_df = topics_df.groupby(['ds', 'language', 'topic'], as_index=False).agg(
+        grouped_topics_df = topics_df.groupby(['ds', 'language', 'license_key', 'topic'], as_index=False).agg(
             repo_count=('repo_full_name', 'count'),
-        ).sort_values(by=['ds', 'language', 'repo_count'], ascending=[True, True, False])
+        ).sort_values(by=['ds', 'language', 'license_key', 'repo_count'], ascending=[True, True, True, False])
         grouped_topics_df = grouped_topics_df[grouped_topics_df['repo_count'] > 1]
         write_df(context, task_outdir, 'topics', grouped_topics_df)
 
         # Top-line repo stats
-        grouped_df = repo_stats(context, task_outdir, repos_df).sort_values(by=['ds', 'sortby', 'pushed', 'language', 'repo_count'], ascending=[True, True, True, True, False])
+        grouped_df = repo_stats(
+            context,
+            task_outdir,
+            repos_df,
+            repos_df_standard_groupby
+        ).sort_values(
+            by=repos_df_standard_groupby + ['repo_count'],
+            ascending=([True] * len(repos_df_standard_groupby)) + [False]
+        )
         write_df(context, task_outdir, 'repo_stats_overall', grouped_df)
-        joined_df = pd.merge(repos_df, grouped_df, on=['ds', 'sortby', 'pushed', 'language'])
+
+        # Top-line license stats
+        license_grouped_df = repo_stats(
+            context,
+            task_outdir,
+            repos_df,
+            repos_df_license_groupby
+        ).sort_values(
+            by=repos_df_license_groupby + ['repo_count'],
+            ascending=([True] * len(repos_df_license_groupby)) + [False]
+        )
+        write_df(context, task_outdir, 'repo_stats_license', license_grouped_df)
+
+        # Top-line repo quantile stats
+        joined_df = pd.merge(repos_df, grouped_df, on=repos_df_standard_groupby)
         COLUMNS = [
             'size',
             'days_since_create',
@@ -260,8 +286,13 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
                 q_df = joined_df
                 q_df = q_df[q_df[f"{column}_{q_lo}"] <= q_df[column]] if q_lo is not None else q_df
                 q_df = q_df[q_df[column] < q_df[f"{column}_{q_hi}"]] if q_hi is not None else q_df
-                quant_df = repo_stats(context, task_outdir, q_df)
-                quant_df.insert(4, 'quantile', q_name)
+                quant_df = repo_stats(
+                    context,
+                    task_outdir,
+                    q_df,
+                    repos_df_standard_groupby
+                )
+                quant_df.insert(len(repos_df_standard_groupby), 'quantile', q_name)
                 quant_dfs.append(quant_df)
-            quant_df = pd.concat(quant_dfs).sort_values(by=['ds', 'sortby', 'pushed', 'language', 'quantile'])
+            quant_df = pd.concat(quant_dfs).sort_values(by=repos_df_standard_groupby + ['quantile'])
             write_df(context, task_outdir, f"repo_stats_quantile_by_{column}", quant_df)
