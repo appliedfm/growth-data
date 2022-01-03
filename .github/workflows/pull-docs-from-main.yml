@@ -6,17 +6,11 @@ on:
     - cron:  '40 4 * * 5' # 4:40am on Fridays
   workflow_dispatch:
     inputs:
-      notes:
-        description: 'Anything you want to say'
-        default: 'anything at all'
-        required: false
 
 jobs:
   update-docs-in-data:
     runs-on: ubuntu-latest
     steps:
-      - name: Log the notes
-        run: echo ${{ github.event.inputs.notes }}
       - name: Check out repository
         uses: actions/checkout@v2
         with:
@@ -36,14 +30,12 @@ jobs:
           git config user.name intoverflow
           git config user.email intoverflow@users.noreply.github.com
           git add docs
-          git commit -m "pull-docs-from-main" || true
+          git commit -m "pull-docs-from-main update-docs-in-data" || true
           git push
   update-docs-in-docs:
     needs: update-docs-in-data
     runs-on: ubuntu-latest
     steps:
-      - name: Log the notes
-        run: echo ${{ github.event.inputs.notes }}
       - name: Check out repository
         uses: actions/checkout@v2
         with:
@@ -68,5 +60,5 @@ jobs:
           git config user.email intoverflow@users.noreply.github.com
           git add .
           git add --force docs/source/_static/plots
-          git commit -m "pull-docs-from-main" || true
+          git commit -m "pull-docs-from-main update-docs-in-docs" || true
           git push
