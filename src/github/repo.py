@@ -175,7 +175,7 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
                 has_topic = (
                     (topics_df['ds'] == context['now']['ds']) &
                     (topics_df['language'] == query['args']['language']) &
-                    (topics_df['license_key'] == str(repo["license"]["key"]) if repo["license"] is not None else "") &
+                    (topics_df['license_key'] == (str(repo["license"]["key"]) if repo["license"] is not None else "")) &
                     (topics_df['topic'] == topic) &
                     (topics_df['repo_full_name'] == str(repo["full_name"]))
                 )
