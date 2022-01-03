@@ -54,9 +54,9 @@ By issues
 
 .. raw:: html
 
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_license/open_issues-sum-logscale.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_license/open_issues_count-sum-logscale.html"></iframe>
 
 .. raw:: html
 
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_license/open_issues-sum.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_license/open_issues_count-sum.html"></iframe>
 
