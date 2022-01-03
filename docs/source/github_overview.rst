@@ -23,10 +23,12 @@ These counts are gathered directly from GitHub. (In particular, they are not imp
 * Below, we show two charts: they contain the same data, but one is in *logarithmic scale* while the other is in *linear scale*.
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-counts/repo_counts/repo_count-logscale.html
+
+    <iframe class="plot" src="_static/plots/repo-alltime-counts/repo_counts/repo_count-logscale.html"></iframe>
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-counts/repo_counts/repo_count.html
+
+    <iframe class="plot" src="_static/plots/repo-alltime-counts/repo_counts/repo_count.html"></iframe>
 
 
 Users by language & account age
@@ -41,8 +43,11 @@ These counts are gathered directly from GitHub. (In particular, they are not imp
 * Below, we show two charts: they contain the same data, but one is in *logarithmic scale* while the other is in *linear scale*.
 
 .. raw:: html
-   :file: _static/plots/user-alltime-counts/user_counts/user_count-logscale.html
+
+    <iframe class="plot" src="_static/plots/user-alltime-counts/user_counts/user_count-logscale.html"></iframe>
 
 .. raw:: html
-   :file: _static/plots/user-alltime-counts/user_counts/user_count.html
+
+    <iframe class="plot" src="_static/plots/user-alltime-counts/user_counts/user_count.html"></iframe>
+
 
