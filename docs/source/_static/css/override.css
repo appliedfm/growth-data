@@ -7,6 +7,10 @@ div#github.section div.toctree-wrapper ul {
     padding: 0;
 }
 
+div#github.section div.toctree-wrapper li.toctree-l1 ul {
+    font-size: 85%;
+}
+
 div#github.section div.toctree-wrapper li.toctree-l1 ul li {
     font-style: italic;
     display: inline-block;
