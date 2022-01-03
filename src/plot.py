@@ -65,13 +65,49 @@ class Plot:
             symbol='language',
             markers=True,
             labels={
-                'ds': 'Date',
-                'value': metric,
+                'ds': '',
+                'value': '',
             },
             title = title,
         )
         if export:
             self.export(dataset, table, f"{metric}{'-logscale' if logscale else ''}", fig)
+        return fig
+
+    def repo_stats_license_metric(self, dataset, table, metric, aggs, pushed, logscale=False, export=False):
+        dfs = self.corpus.read_dfs()
+        # TODO: In the long run, do you really want to drop sortby?
+        df = dfs[dataset][table].drop(['sortby'], axis=1)
+        df = df[df['pushed'] == pushed]
+        df['license_key'] = df['license_key'].fillna("(Unknown)")
+        title = f"{', '.join(aggs)} of {metric}" if len(aggs) > 0 else metric
+        title = title + " ("
+        title = title + f"pushed={pushed}"
+        if logscale:
+            title = title + ", log scale"
+        title = title + ")"
+        fig = px.line(
+            df,
+            x='ds',
+            y=[
+                f"{metric}_{agg}"
+                for agg in aggs
+            ] if len(aggs) > 0 else [metric],
+            log_y=logscale,
+            facet_col='license_key',
+            facet_col_wrap=6,
+            height=550,
+            color='language',
+            symbol='language',
+            markers=True,
+            labels={
+                'ds': '',
+                'value': '',
+            },
+            title = title,
+        )
+        if export:
+            self.export(dataset, table, f"{metric}-{'_'.join(aggs)}{'-logscale' if logscale else ''}", fig)
         return fig
 
     def repo_stats_metric(self, dataset, table, metric, aggs, logscale=False, export=False):
@@ -95,8 +131,8 @@ class Plot:
             symbol='language',
             markers=True,
             labels={
-                'ds': 'Date',
-                'value': metric,
+                'ds': '',
+                'value': '',
             },
             title = title,
         )
@@ -105,19 +141,7 @@ class Plot:
         return fig
 
 
-if __name__=="__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input", help="Path to corpus")
-    parser.add_argument("-o", "--outdir", help="Output directory")
-    parser.add_argument("--index_only", help="Generate indexes but don't generate any plots", action='store_true')
-    parser.set_defaults(input='data')
-    parser.set_defaults(output='docs/source/_static/plots')
-    parser.set_defaults(index_only=False)
-    args = parser.parse_args()
-
-    M = Corpus(args.input)
-    P = Plot(args.output, M)
-
+def render_plots(M, P):
     COUNTS = [
         (
             'repo-alltime-counts',
@@ -149,57 +173,97 @@ if __name__=="__main__":
         ),
     ]
 
-    if not args.index_only:
-        for dataset, facet, metrics in COUNTS:
-            for table, metric in metrics:
-                for logscale in [True, False]:
-                    print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
-                    P.plot_counts(
+    for dataset, facet, metrics in COUNTS:
+        for table, metric in metrics:
+            for logscale in [True, False]:
+                print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
+                P.plot_counts(
+                    dataset,
+                    table,
+                    metric,
+                    facet,
+                    logscale=logscale,
+                    export=True
+                )
+        print("")
+
+    LICENSE_METRICS = [
+        ('repo_count', []),
+        ('stargazers_count', ['sum']),
+        ('forks_count', ['sum']),
+        ('size', ['sum']),
+        ('open_issues_count', ['sum']),
+    ]
+
+    for dataset in ['repo-alltime-stats']:
+        for table in ['repo_stats_license']:
+            for metric, agg in LICENSE_METRICS:
+                for logscale in [False, True]:
+                    print(f"rendering {dataset} {table} {metric} {agg} (logscale={logscale})")
+                    fig = P.repo_stats_license_metric(
                         dataset,
                         table,
                         metric,
-                        facet,
+                        agg,
+                        pushed='156_3year',
                         logscale=logscale,
                         export=True
                     )
-            print("")
+        print("")
 
-        for dataset in ['repo-alltime-stats']:
-            for table in ['repo_stats_overall']:
-                for metric in ['repo_count', 'repos_with_license', 'repos_with_issues', 'repos_with_downloads', 'repos_with_wiki', 'repos_with_projects', 'repos_with_pages']:
-                    for logscale in [False, True]:
-                        print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
+        for table in ['repo_stats_overall']:
+            for metric in ['repo_count', 'repos_with_license', 'repos_with_issues', 'repos_with_downloads', 'repos_with_wiki', 'repos_with_projects', 'repos_with_pages']:
+                for logscale in [False, True]:
+                    print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
+                    fig = P.repo_stats_metric(
+                        dataset,
+                        table,
+                        metric,
+                        [],
+                        logscale=logscale,
+                        export=True
+                    )
+            for metric in ['days_since_create']:
+                for logscale in [False, True]:
+                    for aggs in [['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
+                        print(f"rendering {dataset} {table} {metric} {aggs} (logscale={logscale})")
                         fig = P.repo_stats_metric(
                             dataset,
                             table,
                             metric,
-                            [],
+                            aggs,
                             logscale=logscale,
                             export=True
                         )
-                for metric in ['days_since_create']:
-                    for logscale in [False, True]:
-                        for aggs in [['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
-                            print(f"rendering {dataset} {table} {metric} {aggs} (logscale={logscale})")
-                            fig = P.repo_stats_metric(
-                                dataset,
-                                table,
-                                metric,
-                                aggs,
-                                logscale=logscale,
-                                export=True
-                            )
-                for metric in ['stargazers_count', 'forks_count', 'size', 'open_issues_count']:
-                    for logscale in [False, True]:
-                        for aggs in [['sum'], ['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
-                            print(f"rendering {dataset} {table} {metric} {aggs} (logscale={logscale})")
-                            fig = P.repo_stats_metric(
-                                dataset,
-                                table,
-                                metric,
-                                aggs,
-                                logscale=logscale,
-                                export=True
-                            )
-            print("")
+            for metric in ['stargazers_count', 'forks_count', 'size', 'open_issues_count']:
+                for logscale in [False, True]:
+                    for aggs in [['sum'], ['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
+                        print(f"rendering {dataset} {table} {metric} {aggs} (logscale={logscale})")
+                        fig = P.repo_stats_metric(
+                            dataset,
+                            table,
+                            metric,
+                            aggs,
+                            logscale=logscale,
+                            export=True
+                        )
+        print("")
+
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input", help="Path to corpus")
+    parser.add_argument("-o", "--outdir", help="Output directory")
+    parser.add_argument("--index_only", help="Generate indexes but don't generate any plots", action='store_true')
+    parser.set_defaults(input='data')
+    parser.set_defaults(output='docs/source/_static/plots')
+    parser.set_defaults(index_only=False)
+    args = parser.parse_args()
+
+    M = Corpus(args.input)
+    P = Plot(args.output, M)
+
+    if not args.index_only:
+        render_plots(M, P)
+
     P.write_index()
