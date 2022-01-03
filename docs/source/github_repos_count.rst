@@ -1,71 +1,85 @@
-Repo counts
-===========
+Repo count
+==========
 
-Overall counts
---------------
-
-.. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repo_count-.html
+Overall count
+-------------
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repo_count--logscale.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repo_count-.html"></iframe>
+
+.. raw:: html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repo_count--logscale.html"></iframe>
 
 
 With license
 ------------
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_license-.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_license-.html"></iframe>
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_license--logscale.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_license--logscale.html"></iframe>
 
 
 With issues
 -----------
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_issues-.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_issues-.html"></iframe>
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_issues--logscale.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_issues--logscale.html"></iframe>
 
 
 With downloads
 --------------
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_downloads-.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_downloads-.html"></iframe>
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_downloads--logscale.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_downloads--logscale.html"></iframe>
 
 
 With wiki
 ---------
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_wiki-.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_wiki-.html"></iframe>
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_wiki--logscale.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_wiki--logscale.html"></iframe>
 
 
 With projects
 -------------
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_projects-.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_projects-.html"></iframe>
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_projects--logscale.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_projects--logscale.html"></iframe>
 
 
 With pages
 ----------
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_pages-.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_pages-.html"></iframe>
 
 .. raw:: html
-   :file: _static/plots/repo-alltime-stats/repo_stats_overall/repos_with_pages--logscale.html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/repos_with_pages--logscale.html"></iframe>

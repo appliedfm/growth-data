@@ -83,6 +83,7 @@ GITHUB_DATASETS = {
     "repo-weekly-stats": {
         "type": "repo",
         "stats": True,
+        "topics": True,
         "args": {
             "language": GITHUB_FULL_LANGUAGES + GITHUB_PARTIAL_LANGUAGES,
             "sort-by": ["stars"],

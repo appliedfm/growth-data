@@ -37,15 +37,32 @@ class GitHub:
             self.last_query = ts
         return ts
 
-    def do_request(self, api_url, is_search=False):
+    def do_request(self, api_url, is_search=False, retries=2):
         print(f"  ... do_request(\"{api_url}\")", flush=True)
         ts = self.ratelimit(is_search)
         headers = {
-            'User-Agent': 'request'
+            'User-Agent': 'https://github.com/appliedfm/growth-data'
         }
         if self.token is not None:
             headers['Authorization'] = 'token ' + self.token
         response = requests.get(api_url, headers=headers)
+
+        if 200 != response.status_code:
+            print(f"  ... error: status={response.status_code}", file=sys.stderr, flush=True)
+            print(f"      headers: {response.headers}", file=sys.stderr, flush=True)
+            print(f"      response: {json.dumps(response.json())}", file=sys.stderr, flush=True)
+            if 0 < retries:
+                sleep_for = 120
+                print(f"  ... sleeping for {sleep_for} seconds, then retrying ... ", file=sys.stderr, flush=True)
+                sleep(sleep_for)
+                return self.do_request(
+                    api_url,
+                    is_search=is_search,
+                    retries=retries - 1
+                )
+            print(f"      exiting with failure (out of retries)", file=sys.stderr, flush=True)
+            exit(-1)
+
         return response.status_code, response
 
     def do_search(self, search_type, q, fetch_all=False, sortby=None, page=1, per_page=100, items=[], retries=2):
@@ -56,31 +73,10 @@ class GitHub:
 
         api_url = f"https://api.github.com/search/{search_type}?q={urllib.parse.quote(q)}&page={page}&per_page={per_page}"
         if sortby is not None:
-            api_url = api_url + f"&sort={sortby}"
+            api_url = api_url + f"&sort={sortby}&order=desc"
 
         github_rest_status, github_rest_response = self.do_request(api_url, is_search=True)
         github_rest_data = github_rest_response.json()
-
-        if 200 != github_rest_status:
-            print(f"  ... error: status={github_rest_status}", file=sys.stderr, flush=True)
-            print(f"      headers: {github_rest_response.headers}", file=sys.stderr, flush=True)
-            print(f"      response: {json.dumps(github_rest_data)}", file=sys.stderr, flush=True)
-            if retries > 0:
-                sleep_for = 120
-                print(f"  ... sleeping for {sleep_for} seconds, then retrying ... ", file=sys.stderr, flush=True)
-                sleep(sleep_for)
-                return self.do_search(
-                    search_type,
-                    q,
-                    fetch_all = fetch_all,
-                    sortby = sortby,
-                    page = page,
-                    per_page = per_page,
-                    items = items,
-                    retries = retries - 1
-                )
-            print(f"      exiting with failure (out of retries)", file=sys.stderr, flush=True)
-            exit(-1)
 
         total_count = int(github_rest_data["total_count"])
         total_so_far = len(items) + len(github_rest_data["items"])
