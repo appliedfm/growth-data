@@ -231,11 +231,12 @@ def repo_task(context, gh, dataset_name, task_outdir, args, queries):
             write_df(context, task_outdir, 'topics', topics_df)
 
         # Topic stats
-        grouped_topics_df = topics_df.groupby(['ds', 'language', 'license_key', 'topic'], as_index=False).agg(
-            repo_count=('repo_full_name', 'count'),
-        ).sort_values(by=['ds', 'language', 'license_key', 'repo_count'], ascending=[True, True, True, False])
-        grouped_topics_df = grouped_topics_df[grouped_topics_df['repo_count'] > 1]
-        write_df(context, task_outdir, 'topics', grouped_topics_df)
+        if 'topics' in args and args['topics']:
+            grouped_topics_df = topics_df.groupby(['ds', 'language', 'license_key', 'topic'], as_index=False).agg(
+                repo_count=('repo_full_name', 'count'),
+            ).sort_values(by=['ds', 'language', 'license_key', 'repo_count'], ascending=[True, True, True, False])
+            grouped_topics_df = grouped_topics_df[grouped_topics_df['repo_count'] > 1]
+            write_df(context, task_outdir, 'topics', grouped_topics_df)
 
         # Top-line repo stats
         grouped_df = repo_stats(

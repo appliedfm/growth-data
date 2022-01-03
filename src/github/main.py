@@ -20,6 +20,7 @@ def plan_tasks(dataset_name):
             "fn": repo_task,
             "args": {
                 "stats": task['stats'],
+                "topics": task['topics'] if 'topics' in task else False,
             },
             "queries": [],
         }
