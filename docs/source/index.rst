@@ -32,6 +32,7 @@ GitHub
    :maxdepth: 2
 
    github_overview
+   github_repos_licenses
    github_repos_count
    github_repos_create
    github_repos_size
