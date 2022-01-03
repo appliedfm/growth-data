@@ -1,30 +1,30 @@
 @import '../alabaster.css';
 
 
-div#github.section div.toctree-wrapper ul {
+#github div.toctree-wrapper ul {
     display: inline;
     margin: 0;
     padding: 0;
 }
 
-div#github.section div.toctree-wrapper li.toctree-l1 ul {
+#github div.toctree-wrapper li.toctree-l1 ul {
     font-size: 85%;
 }
 
-div#github.section div.toctree-wrapper li.toctree-l1 ul li {
+#github div.toctree-wrapper li.toctree-l1 ul li {
     font-style: italic;
     display: inline-block;
 }
 
-div#github.section div.toctree-wrapper li.toctree-l1 ul li::after {
+#github div.toctree-wrapper li.toctree-l1 ul li::after {
     content: ", ";
 }
 
-div#github.section div.toctree-wrapper li.toctree-l1 ul li:first-child::before {
+#github div.toctree-wrapper li.toctree-l1 ul li:first-child::before {
     content: "(";
 }
 
-div#github.section div.toctree-wrapper li.toctree-l1 ul li:last-child::after {
+#github div.toctree-wrapper li.toctree-l1 ul li:last-child::after {
     content: ")";
 }
 
