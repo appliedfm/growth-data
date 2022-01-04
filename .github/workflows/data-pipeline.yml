@@ -1,4 +1,4 @@
-name: data-github
+name: fetch-data
 
 on:
   schedule:
