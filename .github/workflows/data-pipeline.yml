@@ -12,7 +12,7 @@ on:
         required: true
 
 jobs:
-  latest-data:
+  latest-data-github:
     runs-on: ubuntu-latest
     env:
       DEFAULT_DATASET_NAME: 'all'
