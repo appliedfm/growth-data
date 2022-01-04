@@ -2,16 +2,28 @@ Repo size
 =========
 
 
+Latest
+------
+
+.. raw:: html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/latest--size_sum.html"></iframe>
+
+.. raw:: html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/latest--size_sum-logscale.html"></iframe>
+
+
 Total
 -----
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/size-sum.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/size_sum-.html"></iframe>
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/size-sum-logscale.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/size_sum--logscale.html"></iframe>
 
 Max
 ---

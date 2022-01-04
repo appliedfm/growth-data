@@ -2,16 +2,28 @@ Repo forks
 ==========
 
 
+Latest
+------
+
+.. raw:: html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/latest--forks_count_sum.html"></iframe>
+
+.. raw:: html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/latest--forks_count_sum-logscale.html"></iframe>
+
+
 Total
 -----
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/forks_count-sum.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/forks_count_sum-.html"></iframe>
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/forks_count-sum-logscale.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/forks_count_sum--logscale.html"></iframe>
 
 Max
 ---
