@@ -1,0 +1,43 @@
+name: fetch-data
+
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '40 4 * * 4' # 4:40am on Thursdays
+  workflow_dispatch:
+    inputs:
+      dataset_name:
+        description: 'Space-separated list of dataset names (or "all" to select all)'
+        default: 'all'
+        required: true
+
+jobs:
+  latest-data-github:
+    runs-on: ubuntu-latest
+    env:
+      DEFAULT_DATASET_NAME: 'all'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+        with:
+          ref: data
+      - name: Pull from main
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git fetch origin main
+          git merge -s recursive -X theirs --allow-unrelated-histories origin/main
+      - name: Install the dependencies
+        run: pip install -r requirements.txt
+      - name: Get the data
+        run: python3 src/github/main.py -o data -t ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.dataset_name || env.DEFAULT_DATASET_NAME }}
+      - name: Commit the data
+        run: |
+          git config user.name intoverflow
+          git config user.email intoverflow@users.noreply.github.com
+          git add data
+          git commit -m "$(date +'%Y-%m-%d') ${{ github.event.inputs.dataset_name }}"
+          git push
+      - name: Track the size
+        run: |
+          du -h data

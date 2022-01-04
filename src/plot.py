@@ -49,11 +49,12 @@ class Plot:
         datasets_f.close()
 
     def plot_counts(self, dataset, table, metric, facet, logscale=False, export=False):
-        dfs = self.corpus.read_dfs()
-        df = dfs[dataset][table]
+        df = self.corpus.read_dfs()[dataset][table]
+
         title = f"{metric}"
         if logscale:
             title = title + " (log scale)"
+
         fig = px.line(
             df,
             x='ds',
@@ -74,32 +75,58 @@ class Plot:
             self.export(dataset, table, f"{metric}{'-logscale' if logscale else ''}", fig)
         return fig
 
-    def repo_stats_license_metric(self, dataset, table, metric, aggs, pushed, logscale=False, export=False):
-        dfs = self.corpus.read_dfs()
-        # TODO: In the long run, do you really want to drop sortby?
-        df = dfs[dataset][table].drop(['sortby'], axis=1)
+    def repo_stats_license_metric_latest(self, dataset, table, path, metric, pushed, export=False):
+        df = self.corpus.read_dfs()[dataset][table]
+        df = df[df['sortby'] == 'stars']
         df = df[df['pushed'] == pushed]
+        df = df.drop(['sortby'], axis=1)
+        latest_ds = df['ds'].max()
+        df = df[df['ds'] == latest_ds]
+
         df['license_key'] = df['license_key'].fillna("(Unknown)")
-        title = f"{', '.join(aggs)} of {metric}" if len(aggs) > 0 else metric
+
+        title = f"{metric} by {', '.join(path)}"
+        title = title + " ("
+        title = title + f"ds={latest_ds}"
+        title = title + f", pushed={pushed}"
+        title = title + ")"
+
+        fig = px.sunburst(
+            df,
+            path=path,
+            values=metric,
+            height=550,
+            title = title,
+        )
+        if export:
+            self.export(dataset, table, f"latest--{metric}--{'-'.join(path)}", fig)
+        return fig
+
+    def repo_stats_license_metric(self, dataset, table, metric, pushed, logscale=False, export=False):
+        df = self.corpus.read_dfs()[dataset][table]
+        df = df[df['sortby'] == 'stars']
+        df = df[df['pushed'] == pushed]
+        df = df.drop(['sortby'], axis=1)
+
+        df['license_key'] = df['license_key'].fillna("(Unknown)")
+
+        title = metric
         title = title + " ("
         title = title + f"pushed={pushed}"
         if logscale:
             title = title + ", log scale"
         title = title + ")"
-        fig = px.line(
+
+        fig = px.area(
             df,
             x='ds',
-            y=[
-                f"{metric}_{agg}"
-                for agg in aggs
-            ] if len(aggs) > 0 else [metric],
+            y=metric,
             log_y=logscale,
             facet_col='license_key',
             facet_col_wrap=6,
             height=550,
             color='language',
-            symbol='language',
-            markers=True,
+            line_group='language',
             labels={
                 'ds': '',
                 'value': '',
@@ -107,16 +134,78 @@ class Plot:
             title = title,
         )
         if export:
-            self.export(dataset, table, f"{metric}-{'_'.join(aggs)}{'-logscale' if logscale else ''}", fig)
+            self.export(dataset, table, f"{metric}{'-logscale' if logscale else ''}", fig)
+        return fig
+
+    def repo_stats_metric_latest(self, dataset, table, metric, logscale=False, export=False):
+        df = self.corpus.read_dfs()[dataset][table]
+        df = df[df['sortby'] == 'stars']
+        df = df.drop(['sortby'], axis=1)
+        latest_ds = df['ds'].max()
+        df = df[df['ds'] == latest_ds]
+
+        title = metric
+        title = title + " ("
+        title = title + f"ds={latest_ds}"
+        if logscale:
+            title = title + ", log scale"
+        title = title + ")"
+
+        fig = px.bar(
+            df,
+            x='language',
+            y=metric,
+            log_y=logscale,
+            facet_col='pushed',
+            height=550,
+            color='language',
+            labels={
+                'language': '',
+                'value': '',
+            },
+            title = title,
+        )
+        if export:
+            self.export(dataset, table, f"latest--{metric}{'-logscale' if logscale else ''}", fig)
+        return fig
+
+    def repo_stats_metric_area(self, dataset, table, metric, logscale=False, export=False):
+        df = self.corpus.read_dfs()[dataset][table]
+        df = df[df['sortby'] == 'stars']
+        df = df.drop(['sortby'], axis=1)
+
+        title = metric
+        if logscale:
+            title = title + " (log scale)"
+
+        fig = px.area(
+            df,
+            x='ds',
+            y=metric,
+            log_y=logscale,
+            facet_col='pushed',
+            height=550,
+            color='language',
+            line_group='language',
+            labels={
+                'ds': '',
+                'value': '',
+            },
+            title = title,
+        )
+        if export:
+            self.export(dataset, table, f"{metric}-{'-logscale' if logscale else ''}", fig)
         return fig
 
     def repo_stats_metric(self, dataset, table, metric, aggs, logscale=False, export=False):
-        dfs = self.corpus.read_dfs()
-        # TODO: In the long run, do you really want to drop sortby?
-        df = dfs[dataset][table].drop(['sortby'], axis=1)
+        df = self.corpus.read_dfs()[dataset][table]
+        df = df[df['sortby'] == 'stars']
+        df = df.drop(['sortby'], axis=1)
+
         title = f"{', '.join(aggs)} of {metric}" if len(aggs) > 0 else metric
         if logscale:
             title = title + " (log scale)"
+
         fig = px.line(
             df,
             x='ds',
@@ -188,38 +277,57 @@ def render_plots(M, P):
         print("")
 
     LICENSE_METRICS = [
-        ('repo_count', []),
-        ('stargazers_count', ['sum']),
-        ('forks_count', ['sum']),
-        ('size', ['sum']),
-        ('open_issues_count', ['sum']),
+        'repo_count',
+        'stargazers_count_sum',
+        'forks_count_sum',
+        'size_sum',
+        'open_issues_count_sum',
     ]
 
     for dataset in ['repo-alltime-stats']:
         for table in ['repo_stats_license']:
-            for metric, agg in LICENSE_METRICS:
+            for metric in LICENSE_METRICS:
                 for logscale in [False, True]:
-                    print(f"rendering {dataset} {table} {metric} {agg} (logscale={logscale})")
+                    print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
                     fig = P.repo_stats_license_metric(
                         dataset,
                         table,
                         metric,
-                        agg,
                         pushed='156_3year',
                         logscale=logscale,
                         export=True
                     )
+                    for path in [['language', 'license_key'], ['license_key', 'language']]:
+                        fig = P.repo_stats_license_metric_latest(
+                            dataset,
+                            table,
+                            path,
+                            metric,
+                            pushed='156_3year',
+                            export=True
+                        )
         print("")
 
         for table in ['repo_stats_overall']:
-            for metric in ['repo_count', 'repos_with_license', 'repos_with_issues', 'repos_with_downloads', 'repos_with_wiki', 'repos_with_projects', 'repos_with_pages']:
+            for metric in ['repo_count', 'stargazers_count_sum', 'forks_count_sum', 'size_sum', 'open_issues_count_sum']:
                 for logscale in [False, True]:
-                    print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
-                    fig = P.repo_stats_metric(
+                    print(f"rendering latest {dataset} {table} {metric} (logscale={logscale})")
+                    fig = P.repo_stats_metric_latest(
                         dataset,
                         table,
                         metric,
-                        [],
+                        logscale=logscale,
+                        export=True
+                    )
+            print("")
+
+            for metric in ['repo_count', 'repos_with_license', 'repos_with_issues', 'repos_with_downloads', 'repos_with_wiki', 'repos_with_projects', 'repos_with_pages']:
+                for logscale in [False, True]:
+                    print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
+                    fig = P.repo_stats_metric_area(
+                        dataset,
+                        table,
+                        metric,
                         logscale=logscale,
                         export=True
                     )
@@ -235,9 +343,19 @@ def render_plots(M, P):
                             logscale=logscale,
                             export=True
                         )
+            for metric in ['stargazers_count_sum', 'forks_count_sum', 'size_sum', 'open_issues_count_sum']:
+                for logscale in [False, True]:
+                    print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
+                    fig = P.repo_stats_metric_area(
+                        dataset,
+                        table,
+                        metric,
+                        logscale=logscale,
+                        export=True
+                    )
             for metric in ['stargazers_count', 'forks_count', 'size', 'open_issues_count']:
                 for logscale in [False, True]:
-                    for aggs in [['sum'], ['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
+                    for aggs in [['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
                         print(f"rendering {dataset} {table} {metric} {aggs} (logscale={logscale})")
                         fig = P.repo_stats_metric(
                             dataset,
