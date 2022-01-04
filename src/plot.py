@@ -49,11 +49,12 @@ class Plot:
         datasets_f.close()
 
     def plot_counts(self, dataset, table, metric, facet, logscale=False, export=False):
-        dfs = self.corpus.read_dfs()
-        df = dfs[dataset][table]
+        df = self.corpus.read_dfs()[dataset][table]
+
         title = f"{metric}"
         if logscale:
             title = title + " (log scale)"
+
         fig = px.line(
             df,
             x='ds',
@@ -75,17 +76,20 @@ class Plot:
         return fig
 
     def repo_stats_license_metric(self, dataset, table, metric, aggs, pushed, logscale=False, export=False):
-        dfs = self.corpus.read_dfs()
-        # TODO: In the long run, do you really want to drop sortby?
-        df = dfs[dataset][table].drop(['sortby'], axis=1)
+        df = self.corpus.read_dfs()[dataset][table]
+        df = df[df['sortby'] == 'stars']
         df = df[df['pushed'] == pushed]
+        df = df.drop(['sortby'], axis=1)
+
         df['license_key'] = df['license_key'].fillna("(Unknown)")
+
         title = f"{', '.join(aggs)} of {metric}" if len(aggs) > 0 else metric
         title = title + " ("
         title = title + f"pushed={pushed}"
         if logscale:
             title = title + ", log scale"
         title = title + ")"
+
         fig = px.line(
             df,
             x='ds',
@@ -111,9 +115,9 @@ class Plot:
         return fig
 
     def repo_stats_metric(self, dataset, table, metric, aggs, logscale=False, export=False):
-        dfs = self.corpus.read_dfs()
-        # TODO: In the long run, do you really want to drop sortby?
-        df = dfs[dataset][table].drop(['sortby'], axis=1)
+        df = self.corpus.read_dfs()[dataset][table]
+        df = df[df['sortby'] == 'stars']
+        df = df.drop(['sortby'], axis=1)
         title = f"{', '.join(aggs)} of {metric}" if len(aggs) > 0 else metric
         if logscale:
             title = title + " (log scale)"
