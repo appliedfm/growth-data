@@ -30,11 +30,11 @@ Max
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/forks_count-max.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/forks_count_max-.html"></iframe>
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/forks_count-max-logscale.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/forks_count_max--logscale.html"></iframe>
 
 Median
 ------

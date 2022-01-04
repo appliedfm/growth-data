@@ -30,11 +30,11 @@ Max
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/size-max.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/size_max-.html"></iframe>
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/size-max-logscale.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/size_max--logscale.html"></iframe>
 
 Median
 ------

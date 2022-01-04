@@ -284,6 +284,25 @@ def render_plots(M, P):
         'open_issues_count_sum',
     ]
 
+    AREA_METRICS = [
+        'repo_count',
+        'repos_with_license',
+        'repos_with_issues',
+        'repos_with_downloads',
+        'repos_with_wiki',
+        'repos_with_projects',
+        'repos_with_pages',
+        'stargazers_count_sum',
+        'stargazers_count_max',
+        'forks_count_sum',
+        'forks_count_max',
+        'size_sum',
+        'size_max',
+        'open_issues_count_sum',
+        'open_issues_count_max',
+        'days_since_create_max',
+    ]
+
     for dataset in ['repo-alltime-stats']:
         for table in ['repo_stats_license']:
             for metric in LICENSE_METRICS:
@@ -321,9 +340,9 @@ def render_plots(M, P):
                     )
             print("")
 
-            for metric in ['repo_count', 'repos_with_license', 'repos_with_issues', 'repos_with_downloads', 'repos_with_wiki', 'repos_with_projects', 'repos_with_pages']:
+            for metric in AREA_METRICS:
                 for logscale in [False, True]:
-                    print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
+                    print(f"rendering area {dataset} {table} {metric} (logscale={logscale})")
                     fig = P.repo_stats_metric_area(
                         dataset,
                         table,
@@ -333,8 +352,8 @@ def render_plots(M, P):
                     )
             for metric in ['days_since_create']:
                 for logscale in [False, True]:
-                    for aggs in [['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
-                        print(f"rendering {dataset} {table} {metric} {aggs} (logscale={logscale})")
+                    for aggs in [['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50']]:
+                        print(f"rendering stats {dataset} {table} {metric} {aggs} (logscale={logscale})")
                         fig = P.repo_stats_metric(
                             dataset,
                             table,
@@ -343,20 +362,10 @@ def render_plots(M, P):
                             logscale=logscale,
                             export=True
                         )
-            for metric in ['stargazers_count_sum', 'forks_count_sum', 'size_sum', 'open_issues_count_sum']:
-                for logscale in [False, True]:
-                    print(f"rendering {dataset} {table} {metric} (logscale={logscale})")
-                    fig = P.repo_stats_metric_area(
-                        dataset,
-                        table,
-                        metric,
-                        logscale=logscale,
-                        export=True
-                    )
             for metric in ['stargazers_count', 'forks_count', 'size', 'open_issues_count']:
                 for logscale in [False, True]:
-                    for aggs in [['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50'], ['max']]:
-                        print(f"rendering {dataset} {table} {metric} {aggs} (logscale={logscale})")
+                    for aggs in [['avg'], ['q10', 'q90'], ['q25', 'q75'], ['q50']]:
+                        print(f"rendering stats {dataset} {table} {metric} {aggs} (logscale={logscale})")
                         fig = P.repo_stats_metric(
                             dataset,
                             table,
