@@ -75,6 +75,33 @@ class Plot:
             self.export(dataset, table, f"{metric}{'-logscale' if logscale else ''}", fig)
         return fig
 
+    def repo_stats_license_metric_latest(self, dataset, table, path, metric, pushed, export=False):
+        df = self.corpus.read_dfs()[dataset][table]
+        df = df[df['sortby'] == 'stars']
+        df = df[df['pushed'] == pushed]
+        df = df.drop(['sortby'], axis=1)
+        latest_ds = df['ds'].max()
+        df = df[df['ds'] == latest_ds]
+
+        df['license_key'] = df['license_key'].fillna("(Unknown)")
+
+        title = f"{metric} by {', '.join(path)}"
+        title = title + " ("
+        title = title + f"ds={latest_ds}"
+        title = title + f", pushed={pushed}"
+        title = title + ")"
+
+        fig = px.sunburst(
+            df,
+            path=path,
+            values=metric,
+            height=550,
+            title = title,
+        )
+        if export:
+            self.export(dataset, table, f"latest--{metric}--{'-'.join(path)}", fig)
+        return fig
+
     def repo_stats_license_metric(self, dataset, table, metric, pushed, logscale=False, export=False):
         df = self.corpus.read_dfs()[dataset][table]
         df = df[df['sortby'] == 'stars']
@@ -270,6 +297,15 @@ def render_plots(M, P):
                         logscale=logscale,
                         export=True
                     )
+                    for path in [['language', 'license_key'], ['license_key', 'language']]:
+                        fig = P.repo_stats_license_metric_latest(
+                            dataset,
+                            table,
+                            path,
+                            metric,
+                            pushed='156_3year',
+                            export=True
+                        )
         print("")
 
         for table in ['repo_stats_overall']:
