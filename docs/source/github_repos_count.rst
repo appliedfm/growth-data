@@ -1,6 +1,19 @@
 Repo count
 ==========
 
+
+Latest
+------
+
+.. raw:: html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/latest--repo_count.html"></iframe>
+
+.. raw:: html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/latest--repo_count-logscale.html"></iframe>
+
+
 Overall count
 -------------
 

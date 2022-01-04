@@ -1,16 +1,29 @@
 Repo stars
 ==========
 
+
+Latest
+------
+
+.. raw:: html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/latest--stargazers_count_sum.html"></iframe>
+
+.. raw:: html
+
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/latest--stargazers_count_sum-logscale.html"></iframe>
+
+
 Total
 -----
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/stargazers_count-sum.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/stargazers_count_sum-.html"></iframe>
 
 .. raw:: html
    
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/stargazers_count-sum-logscale.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/stargazers_count_sum--logscale.html"></iframe>
 
 Max
 ---
