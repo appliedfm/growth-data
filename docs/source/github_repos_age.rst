@@ -6,11 +6,11 @@ Max
 
 .. raw:: html
 
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/days_since_create-max.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/days_since_create_max-.html"></iframe>
 
 .. raw:: html
 
-   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/days_since_create-max-logscale.html"></iframe>
+   <iframe class="plot" src="_static/plots/repo-alltime-stats/repo_stats_overall/days_since_create_max--logscale.html"></iframe>
 
 Median
 ------
