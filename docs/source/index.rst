@@ -5,6 +5,9 @@ Information about the growth, activity, and maturity of open source formal metho
 
 Published by `applied.fm <https://applied.fm>`_. `Visit us on GitHub <https://github.com/appliedfm/growth-data>`_.
 
+*Last updated*: |today|
+
+
 How to use this report
 ----------------------
 
