@@ -3,7 +3,7 @@ name: pull-docs-from-main
 on:
   schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '40 4 * * 5' # 4:40am on Fridays
+    - cron:  '40 6 * * 4' # 6:40am on Thursdays
   workflow_dispatch:
     inputs:
 

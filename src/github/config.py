@@ -24,6 +24,7 @@ GITHUB_FULL_LANGUAGES = [
     "idris",
     "isabelle",
     "lean",
+    "sml",
     "tla",
 ]
 
