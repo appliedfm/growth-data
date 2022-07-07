@@ -1,0 +1,54 @@
+{
+    "now": {
+        "ds": "2022-07-07",
+        "month": "07",
+        "ts": "2022-07-07 05:07:44.470539+00:00",
+        "year": "2022"
+    },
+    "outdir": "data",
+    "savemd": false,
+    "saveraw": false,
+    "task_log": {
+        "_total": {
+            "est_time_hi": "1:45:56",
+            "est_time_lo": "0:40:50",
+            "query_count": 350,
+            "time": "0:27:06.883371"
+        },
+        "repo-alltime-counts": {
+            "est_time_hi": "0:19:36",
+            "est_time_lo": "0:19:36",
+            "query_count": 168,
+            "time": "0:12:25.018309"
+        },
+        "repo-alltime-stats": {
+            "est_time_hi": "0:56:00",
+            "est_time_lo": "0:05:36",
+            "query_count": 48,
+            "time": "0:06:16.416768"
+        },
+        "repo-weekly-stats": {
+            "est_time_hi": "0:16:20",
+            "est_time_lo": "0:01:38",
+            "query_count": 14,
+            "time": "0:02:27.965577"
+        },
+        "user-alltime-counts": {
+            "est_time_hi": "0:14:00",
+            "est_time_lo": "0:14:00",
+            "query_count": 120,
+            "time": "0:05:57.482188"
+        }
+    },
+    "windows": {
+        "001_1week": "2022-06-30",
+        "004_1month": "2022-06-09",
+        "013_3month": "2022-04-07",
+        "026_6month": "2022-01-06",
+        "052_1year": "2021-07-08",
+        "156_3year": "2019-07-11",
+        "261_5year": "2017-07-06",
+        "522_10year": "2012-07-05",
+        "alltime": null
+    }
+}
